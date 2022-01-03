@@ -1,13 +1,13 @@
-int @nr1, @nrr2; 
-float @nr2(int @param1, int @x);
-char @sir1;
-string @sir2;
-int @x[100];
-const int @x:=10, @y:=30;
+int nr1, nrr2; 
+float nr2(int param1, int x);
+char sir1;
+string sir2;
+int x[100];
+const int x=10, y=30;
 begin_progr
-@nr1:=(5+4)*10;
-@nr2(52);
-@sir1:=34+@nr1;
-@sir2:=(@sir1+5)*5; 
-@f(@x+3, 5, @y*@x);
+nr1=(5+4)*10;
+nr2(52);
+sir1=34+nr1;
+sir2=(sir1+5)*5; 
+f(x+3, 5, y*x);
 end_progr
