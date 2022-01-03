@@ -4,7 +4,7 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP BGIN END ASSIGN NR CONST WHILE STRUCT FOR IF
+%token ID TIP BGIN END ASSIGN NR CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ
 %start progr
 %left '+'
 %left '*'
@@ -72,42 +72,43 @@ list : statement ';'
      ;
 
 /* instructiune */
-statement : var_pt_assign ASSIGN expr 
+statement : elem ASSIGN expr 
           |	ID '(' lista_apel ')'
           | WHILE '(' expr ')' '{' statement ';' '}'
           | FOR '(' pentru_for ')' '{' statement ';' '}'
           | IF '(' expr ')' '{' statement ';' '}'
          ;
 
-pentru_for : ID ASSIGN expr ';' expr ';' expr
-           | ID ASSIGN expr ';' ';' expr
-           | ID ASSIGN expr ';' ';'
-           | ID ASSIGN expr ';' expr ';'
+pentru_for : elem ASSIGN expr ';' expr ';' expr
+           | elem ASSIGN expr ';' ';' expr
+           | elem ASSIGN expr ';' ';'
+           | elem ASSIGN expr ';' expr ';'
            | ';' expr ';' expr
            | ';' expr ';'
            | ';' ';' expr
            | ';' ';'
            ;
 
-var_pt_assign : variabila
-              | ID '.' ID
-              ;
-
 lista_apel : expr
            | lista_apel ',' expr
            ;
 
 expr : elem
-  | expr '+' expr
-  | expr '*' expr
-  | ID '(' lista_apel ')'
-  | '(' expr ')'
-  ;
+     | NR    
+     | expr '+' expr
+     | expr '*' expr
+     | ID '(' lista_apel ')'
+     | '(' expr ')'
+     ;
         
 elem : ID
-     | NR
-     | ID '.' ID
-     ;
+          | ID '.' ID
+          | ID '[' ID ']'
+          | ID '[' NR ']'
+          ;
+
+
+
 
 %%
 int yyerror(char * s){
