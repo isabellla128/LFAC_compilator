@@ -4,7 +4,7 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP BGIN END ASSIGN NR CONST
+%token ID TIP BGIN END ASSIGN NR CONST WHILE
 %start progr
 %left '+'
 %left '*'
@@ -20,6 +20,7 @@ declaratie : TIP lista_id
            | TIP ID '(' ')'
            | CONST TIP lista_asignari
            ;
+
 dim : NR
     ;
 
@@ -32,25 +33,27 @@ lista_id  : ID
           | lista_id ',' ID '[' dim ']'
           | lista_id ',' ID
           ;
+
 lista_param : param
             | lista_param ','  param 
             ;
             
 param : TIP ID
       ; 
-      
+
 /* bloc */
 bloc : BGIN list END  
      ;
      
 /* lista instructiuni */
-list :  statement ';' 
+list : statement ';' 
      | list statement ';'
      ;
 
 /* instructiune */
-statement: ID ASSIGN expr		 
+statement: ID ASSIGN expr 	 
          | ID '(' lista_apel ')'
+         | WHILE '(' expr ')' '{' statement '}'
          ;
 
 expr : elem
@@ -65,6 +68,7 @@ lista_apel : expr
 elem : ID
      | NR
      ;
+
 %%
 int yyerror(char * s){
 printf("eroare: %s la linia:%d\n",s,yylineno);

@@ -4,10 +4,15 @@ char sir1;
 string sir2;
 int x[100];
 const int x=10, y=30;
+
 begin_progr
+
 nr1=(5+4)*10;
 nr2(52);
 sir1=34+nr1;
 sir2=(sir1+5)*5; 
 f(x+3, 5, y*x);
+
+while ( 0+1 ) { x=5 };
+
 end_progr
