@@ -74,17 +74,17 @@ list : statement ';'
 /* instructiune */
 statement : elem ASSIGN expr 
           |	ID '(' lista_apel ')'
-          | WHILE '(' expr ')' '{' statement ';' '}'
+          | WHILE '(' expr_bool ')' '{' statement ';' '}'
           | FOR '(' pentru_for ')' '{' statement ';' '}'
-          | IF '(' expr ')' '{' statement ';' '}'
-         ;
+          | IF '(' expr_bool ')' '{' statement ';' '}'
+          ;
 
-pentru_for : elem ASSIGN expr ';' expr ';' expr
+pentru_for : elem ASSIGN expr ';' expr_bool ';' expr
            | elem ASSIGN expr ';' ';' expr
            | elem ASSIGN expr ';' ';'
-           | elem ASSIGN expr ';' expr ';'
-           | ';' expr ';' expr
-           | ';' expr ';'
+           | elem ASSIGN expr ';' expr_bool ';'
+           | ';' expr_bool ';' expr
+           | ';' expr_bool ';'
            | ';' ';' expr
            | ';' ';'
            ;
@@ -93,8 +93,7 @@ lista_apel : expr
            | lista_apel ',' expr
            ;
 
-expr : elem
-     | NR    
+expr : elem_NR   
      | expr '+' expr
      | expr '*' expr
      | ID '(' lista_apel ')'
@@ -102,11 +101,22 @@ expr : elem
      ;
         
 elem : ID
-          | ID '.' ID
-          | ID '[' ID ']'
-          | ID '[' NR ']'
-          ;
+     | ID '.' ID
+     | ID '[' ID ']'
+     | ID '[' NR ']'
+     ;
 
+elem_NR : elem
+        | NR
+        ;
+
+expr_bool : elem_NR LW elem_NR
+          | elem_NR BG elem_NR
+          | elem_NR LWEQ elem_NR
+          | elem_NR BGEQ elem_NR
+          | elem_NR EQ elem_NR
+          | elem_NR NOTEQ elem_NR
+          ;
 
 
 
