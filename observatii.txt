@@ -1,0 +1,31 @@
+-putem lua un tablou separat pentru functii;
+-scriem regulile cat mai strategice a.i. sa ne ajute pe ce face mai departe;
+-daca avem o declaratie de variabila o verificam mai intai daca nu se afla deja in tabela de variabile declarate;
+-parte st a asign=part dr a asig -> fol simb si expresii;
+-este bine ca in momentul in care se intalneste o eroare sa oferim detalii descriptive: linie, nr variabila, etc;
+-arborele sintactic se foloseste si in practica la compilatoare;
+-nodurile interioare sunt pentru operatori si in frunze operanzi(x, 5, 3) -> arbori pt expresii;
+-modul in care scrie AST pentru expresii trebuie sa scriem;
+-in loc de expr.AST= punem $$=;
+-in val1.y avem exemple despre cum putem lucra cu variabile;
+-expr : ID;
+-pentru expresii aritmetice e posibil sa apara elementele unui tablou, apeluri de functii -> construim AST gol pentru ele;
+-daca nu putem lucra cu vetori returnam 0 -> tratam doar AST cu numere si mai apoi construim restul;
+-evaluam doar pentru expresii intregi;
+-x+y*5 :
+id:=expr
+ca sa stabilim val id se evalueaza tree pt expr
+ca se evaluez y ma uit in tabela de simboluri
+iau val lui 5
+fac y*5
+val finala va fi val lui x+(y*5)
+evalAST;
+-$$=buildAST(construim arborele);
+-permitem in expresiile aritmetice si apeluri de functie:
+expresia sa se transforme si intr-un apel de functie sa putem apela f(5+x);
+-implementari de functii -> declaratii amestecate cu instructiuni -> bloc functie;
+-la identificatori nu folosim niciun simbol in fata -> lasam identificatorii obisnuit;
+-maxim identificatori pentru nume de functii ca sa ne ajute la partea semantica;
+-nu incarcam sintaxa inutil;
+-fara operatii pe siruri -> la nivel sintactic : string str="dasda";
+-STRINGCONST \"[*]\" -> yytext sa scot primul si ultimul simbol si trimit spre yacc doar continului -> " fiind simb special;
