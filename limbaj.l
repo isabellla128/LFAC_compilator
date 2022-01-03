@@ -1,4 +1,3 @@
-
 %{
 #include <stdio.h>
 #include "y.tab.h"
@@ -13,11 +12,9 @@
 "while" {return WHILE;}
 "for" {return FOR;}
 "if" {return IF;}
-[_a-zA-Z][_a-zA-Z0-9]* {return ID;}        //iduri ce incep cu @, al 2 lea e _ sau litera si restul litere+cifre
+([_a-zA-Z][_a-zA-Z0-9]*)|([_a-zA-Z][_a-zA-Z0-9]*[[_a-zA-Z][_a-zA-Z0-9]*]) {return ID;}        //iduri ce incep cu @, al 2 lea e _ sau litera si restul litere+cifre
 "=" {return ASSIGN;}  
 [0-9]+ {return NR;}
 [ \t] ;
 \n {yylineno++;}                            
 . {return yytext[0];}
-
- 
