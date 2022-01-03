@@ -4,7 +4,7 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP BGIN END ASSIGN NR CONST WHILE FOR IF
+%token ID TIP BGIN END ASSIGN NR CONST WHILE STRUCT FOR IF
 %start progr
 %left '+'
 %left '*'
@@ -12,33 +12,54 @@ extern int yylineno;
 progr: declaratii bloc {printf("program corect sintactic\n");}
      ;
 
-declaratii :  declaratie ';'
-	   | declaratii declaratie ';'
-	   ;
-declaratie : TIP lista_id
+declaratii : declaratie ';'
+	       | declaratii declaratie ';'
+	       ;
+
+declaratie : TIP lista_id_init
            | TIP ID '(' lista_param ')'
            | TIP ID '(' ')'
            | CONST TIP lista_asignari
+           | STRUCT ID '{' continut_struct '}' lista_id
            ;
+
+initializare : ID ASSIGN expr
+
+lista_id_init : variabila
+              | initializare
+              | lista_id_init ',' variabila
+              | lista_id_init ',' initializare
+              ;
+
+continut_struct : declaratie_struct ';'
+                | continut_struct declaratie_struct ';'
+                ;
+
+declaratie_struct   : TIP lista_id_init 
+                    | CONST TIP lista_asignari 
+                    ;
 
 dim : NR
     ;
 
-lista_asignari : ID ASSIGN NR
+lista_asignari  : ID ASSIGN NR
                 | lista_asignari ',' ID ASSIGN NR
                 ;
 
-lista_id  : ID 
-          | ID '[' dim ']'
-          | lista_id ',' ID '[' dim ']'
-          | lista_id ',' ID
-          ;
+variabila  : ID
+           | ID '[' dim ']'
+           ;
+
+lista_id   : variabila 
+           | lista_id ',' variabila
+           ;
 
 lista_param : param
             | lista_param ','  param 
             ;
             
-param : TIP ID
+param : TIP variabila
+      | CONST TIP ID
       ; 
 
 /* bloc */
@@ -51,11 +72,11 @@ list : statement ';'
      ;
 
 /* instructiune */
-statement: ID ASSIGN expr 	 
-         | ID '(' lista_apel ')'
-         | WHILE '(' expr ')' '{' statement ';' '}'
-         | FOR '(' pentru_for ')' '{' statement ';' '}'
-         | IF '(' expr ')' '{' statement ';' '}'
+statement : var_pt_assign ASSIGN expr 
+          |	ID '(' lista_apel ')'
+          | WHILE '(' expr ')' '{' statement ';' '}'
+          | FOR '(' pentru_for ')' '{' statement ';' '}'
+          | IF '(' expr ')' '{' statement ';' '}'
          ;
 
 pentru_for : ID ASSIGN expr ';' expr ';' expr
@@ -68,17 +89,24 @@ pentru_for : ID ASSIGN expr ';' expr ';' expr
            | ';' ';'
            ;
 
-expr : elem
-  | expr '+' expr
-  | expr '*' expr
-  | '(' expr ')'
-  ;
-        
+var_pt_assign : variabila
+              | ID '.' ID
+              ;
+
 lista_apel : expr
            | lista_apel ',' expr
            ;
+
+expr : elem
+  | expr '+' expr
+  | expr '*' expr
+  | ID '(' lista_apel ')'
+  | '(' expr ')'
+  ;
+        
 elem : ID
      | NR
+     | ID '.' ID
      ;
 
 %%
