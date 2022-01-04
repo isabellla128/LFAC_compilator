@@ -4,7 +4,7 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP BGIN END ASSIGN NR CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ
+%token ID TIP BGIN END ASSIGN NR CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE
 %start progr
 %left '+'
 %left '*'
@@ -69,15 +69,19 @@ bloc : BGIN list END
 /* lista instructiuni */
 list : statement ';' 
      | list statement ';'
+     | control_statement
+     | list control_statement
      ;
 
 /* instructiune */
 statement : elem ASSIGN expr 
           |	ID '(' lista_apel ')'
-          | WHILE '(' expr_bool ')' '{' statement ';' '}'
-          | FOR '(' pentru_for ')' '{' statement ';' '}'
-          | IF '(' expr_bool ')' '{' statement ';' '}'
           ;
+
+control_statement : WHILE '(' expr_bool ')' '{' statement ';' '}'
+                  | FOR '(' pentru_for ')' '{' statement ';' '}'
+                  | IF '(' expr_bool ')' '{' statement ';' '}'
+                  ;
 
 pentru_for : elem ASSIGN expr ';' expr_bool ';' expr
            | elem ASSIGN expr ';' ';' expr
