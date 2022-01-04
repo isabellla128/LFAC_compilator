@@ -90,9 +90,10 @@ statement : elem ASSIGN expr
           |	ID '(' lista_apel ')'
           ;
 
-control_statement : WHILE '(' expr_bool ')' '{' statement ';' '}'
-                  | FOR '(' pentru_for ')' '{' statement ';' '}'
-                  | IF '(' expr_bool ')' '{' statement ';' '}'
+control_statement : WHILE '(' expr_bool ')' '{' list '}'
+                  | FOR '(' pentru_for ')' '{' list '}'
+                  | IF '(' expr_bool ')' '{' list '}' {if($3==1) $$=$6; else $$=0;}
+                  | IF '(' expr_bool ')' '{' list '}' ELSE '{' statement ';' '}' {if($3==1) $$=$6; else $$=$11;}
                   ;
 
 pentru_for : elem ASSIGN expr ';' expr_bool ';' expr
@@ -109,31 +110,30 @@ lista_apel : expr
            | lista_apel ',' expr
            ;
 
-expr : elem_NR   
-     | expr '+' expr
-     | expr '*' expr
-     | ID '(' lista_apel ')'
-     | '(' expr ')'
+expr : elem_NR {$$=$1;}
+     | expr '+' expr {$$=$1+$3;}
+     | expr '*' expr {$$=$1*$3;}
+     | ID '(' lista_apel ')' {$$=$3;}
+     | '(' expr ')' {$$=$2;}
      ;
         
-elem : ID
-     | ID '.' ID
-     | ID '[' ID ']'
-     | ID '[' NR ']'
+elem : ID {$$=$1;}
+     | ID '.' ID {$$=0;}
+     | ID '[' ID ']' {$$=0;}
+     | ID '[' NR ']' {$$=0;}
      ;
 
-elem_NR : elem
-        | NR
+elem_NR : elem 
+        | NR {$$=$1;}
         ;
 
-expr_bool : elem_NR LW elem_NR
-          | elem_NR BG elem_NR
-          | elem_NR LWEQ elem_NR
-          | elem_NR BGEQ elem_NR
-          | elem_NR EQ elem_NR
-          | elem_NR NOTEQ elem_NR
+expr_bool : elem_NR LW elem_NR { if($1<$3) $$=1; else $$=0;}
+          | elem_NR BG elem_NR { if($1>$3) $$=1; else $$=0;}
+          | elem_NR LWEQ elem_NR { if($1<=$3) $$=1; else $$=0;}
+          | elem_NR BGEQ elem_NR { if($1>=$3) $$=1; else $$=0;}
+          | elem_NR EQ elem_NR { if($1==$3) $$=1; else $$=0;}
+          | elem_NR NOTEQ elem_NR { if($1!=$3) $$=1; else $$=0;}
           ;
-
 
 
 %%

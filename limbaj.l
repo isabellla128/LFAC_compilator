@@ -1,4 +1,3 @@
-
 %{
 #include <stdio.h>
 #include "y.tab.h"
@@ -26,9 +25,8 @@
 ">=" {return BGEQ;}
 "==" {return EQ;}
 "!=" {return NOTEQ;}  
-[0-9]+ {return NR;}
+[0-9]+ {yylval=atoi(yytext); return NR;}
 [ \t] ;
 \n {yylineno++;}                            
 . {return yytext[0];}
 
- 
