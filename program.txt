@@ -1,11 +1,19 @@
+begin_global
+
 int nr1, nrr2; 
-float nr2(int param1, int x, const int z);
 char sir1;
 string sir2;
 int x[100],y=3,z;
 const int x=10, y=30;
 
+end_global
+
+begin_define
+
 struct nume {int a,b,c; int x[100]; float e=66;} zz,z,zzz;
+float nr2(int param1, int x, const int z);
+
+end_define
 
 begin_progr
 

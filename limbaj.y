@@ -4,22 +4,34 @@ extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
 %}
-%token ID TIP BGIN END ASSIGN NR CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE
+%token ID TIP BGIN END ASSIGN NR CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE
 %start progr
 %left '+'
 %left '*'
 %%
-progr: declaratii bloc {printf("program corect sintactic\n");}
+progr: declaratii_globale declaratii_user bloc {printf("program corect sintactic\n");}
      ;
+
+declaratii_globale : BGIN_GLOBAL declaratii END_GLOBAL  
+                   ;
+
+declaratii_user : BGIN_DEFINE definitii END_DEFINE
+                ;
 
 declaratii : declaratie ';'
 	       | declaratii declaratie ';'
 	       ;
 
+definitii  : definitie ';'
+	       | definitii definitie ';'
+	       ;
+
 declaratie : TIP lista_id_init
-           | TIP ID '(' lista_param ')'
-           | TIP ID '(' ')'
            | CONST TIP lista_asignari
+           ;
+
+definitie  : TIP ID '(' lista_param ')'
+           | TIP ID '(' ')'
            | STRUCT ID '{' continut_struct '}' lista_id
            ;
 

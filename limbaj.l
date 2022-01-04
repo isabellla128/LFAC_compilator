@@ -1,3 +1,4 @@
+
 %{
 #include <stdio.h>
 #include "y.tab.h"
@@ -7,6 +8,10 @@
 "int"|"float"|"char"|"string"|"bool" {return TIP;} //tipul de date
 "begin_progr" {return BGIN;}                //bgin ce delimiteaza un bloc de instructiuni
 "end_progr" {return END;}                   //cuv rez
+"begin_global" {return BGIN_GLOBAL;}
+"end_global" {return END_GLOBAL;}
+"begin_define" {return BGIN_DEFINE;}
+"end_define" {return END_DEFINE;}
 "struct" {return STRUCT;}
 "const" {return CONST;}
 "while" {return WHILE;}
@@ -26,3 +31,4 @@
 \n {yylineno++;}                            
 . {return yytext[0];}
 
+ 
