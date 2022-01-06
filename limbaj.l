@@ -1,10 +1,15 @@
+
 %{
 #include <stdio.h>
 #include "y.tab.h"
 %}
 %option noyywrap
 %%
-"int"|"float"|"char"|"string"|"bool" {return TIP;} //tipul de date
+"int" {yylval.iValue=1; return INT;} //tipul de date
+"float" {yylval.iValue=2; return FLOAT;} //tipul de date
+"char" {yylval.iValue=3; return CHAR;} //tipul de date
+"string" {yylval.iValue=4; return STRING;} //tipul de date
+"bool" {yylval.iValue=0; return BOOL;} //tipul de date
 "begin_progr" {return BGIN;}                //bgin ce delimiteaza un bloc de instructiuni
 "end_progr" {return END;}                   //cuv rez
 "begin_global" {return BGIN_GLOBAL;}
@@ -17,7 +22,8 @@
 "for" {return FOR;}
 "if" {return IF;}
 "else" {return ELSE;}
-[_a-zA-Z][_a-zA-Z0-9]* {return ID;}        //iduri ce incep cu @, al 2 lea e _ sau litera si restul litere+cifre
+",; " {return DA;}
+[_a-zA-Z][_a-zA-Z0-9]* {yylval.nume = yytext; return ID;}        //iduri ce incep cu @, al 2 lea e _ sau litera si restul litere+cifre
 "=" {return ASSIGN;}  
 "<" {return LW;}  
 ">" {return BG;}  
@@ -25,8 +31,9 @@
 ">=" {return BGEQ;}
 "==" {return EQ;}
 "!=" {return NOTEQ;}  
-[0-9]+ {yylval=atoi(yytext); return NR;}
+[0-9]+ {yylval.iValue = atoi(yytext); return NR;}
 [ \t] ;
 \n {yylineno++;}                            
 . {return yytext[0];}
 
+ 
