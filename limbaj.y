@@ -21,7 +21,12 @@ struct functii { int nr_param;
                  char tip_functie[10];
                } func[100]; /*function table*/
 
-int n=0, m=0; /*nr simboluri, nr functii*/
+struct structuri { int nr; /*nr campuri*/
+                   struct simboluri campuri[100];
+                   char nume[20];
+                 } str[100];
+
+int n=0, m=0, o=0; /*nr simboluri, nr functii, nr structuri*/
 
 char functie_curenta[50]="", struct_curent[50]="", status_curent[50]=""; /*status:global,numele functiei,numele structului*/
 int tip_curent=100;
@@ -44,6 +49,41 @@ char* ftoa(float n)
     int ret = snprintf(buffer, sizeof buffer, "%f", n);
     char*p=(char*) buffer;
     return p;
+}
+
+void insert_struct(char nume[50])
+{
+   strcpy(str[o].nume,nume);
+   str[o].nr=0; 
+}
+
+void insert_campuri(char simbol[50], int tip)
+{
+    strcpy(str[o].campuri[str[o].nr].simbol,simbol);
+
+    if(tip==-1) strcpy(str[o].campuri[str[o].nr].tip, "STRUCT");
+    else
+    if(tip == 0) strcpy(str[o].campuri[str[o].nr].tip, "BOOL");
+    else
+    if(tip == 1) strcpy(str[o].campuri[str[o].nr].tip, "INT");
+    else
+    if(tip == 2) strcpy(str[o].campuri[str[o].nr].tip, "FLOAT");
+    else
+    if(tip == 3) strcpy(str[o].campuri[str[o].nr].tip, "CHAR");
+    else
+    if(tip == 4) strcpy(str[o].campuri[str[o].nr].tip, "STRING");
+    else
+    if(tip == 5) strcpy(str[o].campuri[str[o].nr].tip, "CONST BOOL");
+    else
+    if(tip == 6) strcpy(str[o].campuri[str[o].nr].tip, "CONST INT");
+    else
+    if(tip == 7) strcpy(str[o].campuri[str[o].nr].tip, "CONST FLOAT");
+    else
+    if(tip == 8) strcpy(str[o].campuri[str[o].nr].tip, "CONST CHAR");
+    else
+    if(tip == 9) strcpy(str[o].campuri[str[o].nr].tip, "CONST STRING"); 
+    
+    str[o].nr++;
 }
 
 void insert_simbol(char simbol[50])
@@ -91,7 +131,7 @@ void insert_status(char* status)
 void insert_valoare(char simbol[10], char valoare[10])
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1) printf("Nu exista simbolul in tabel.\n");
+    if(i==-1) printf("Nu exista simbolul %s in tabel.\n",simbol);
     else
     strcpy(sym[i].valoare,valoare);
 }
@@ -174,7 +214,7 @@ char* getValoare (char* simbol)
 int getIndiceSimbol (char* simbol)
 {
     int i;
-    for(i=0;i<n;i++)
+    for(i=0;i<=n;i++)
         if(strcmp(sym[i].simbol,simbol) == 0) return i;
     return -1;
 }
@@ -220,6 +260,24 @@ void elimin_tot_dupa_var(char s[100])
     }
     s[i]='\0';
 }
+void insert_variabila_struct(char aux[50])
+{   
+    char caux[50]="";
+    strcpy(caux,aux);
+    int i;
+    for(i=0;i<str[o].nr;i++)
+    {    
+        strcat(aux,".");
+        strcat(aux,str[o].campuri[i].simbol);
+        insert_simbol(aux);
+        strcpy(sym[n].tip,str[o].campuri[i].tip);
+        insert_valoare(aux, str[o].campuri[i].valoare);
+        insert_status(status_curent);
+        strcpy(aux,"");
+        strcpy(aux,caux);
+        n++;
+    }
+}
 
 %}
 %union {char* nume; int iValue; float fValue; char* sValue;}
@@ -256,7 +314,7 @@ tip : BOOL { $<iValue>$=$1; tip_curent=$<iValue>1; }
     | STRING { $<iValue>$=$1; tip_curent=$<iValue>1; }
     ;
 
-const_tip : CONST tip { tip_curent=tip_curent+5; }
+const_tip : CONST tip { tip_curent=tip_curent+5; $<iValue>$=tip_curent;}
 
 definitii  : definitie ';'
 	       | definitii definitie ';'
@@ -264,20 +322,45 @@ definitii  : definitie ';'
 
 definitie   : tip nume_functie '(' lista_param ')'{ insert_functie_tip($<iValue>1); m++; }
             | tip nume_functie '(' ')' { insert_functie_tip($<iValue>1); m++; }
-            | STRUCT nume_struct '{' continut_struct '}' lista_id_s 
+            | const_tip nume_functie '(' lista_param ')'{ insert_functie_tip($<iValue>1); m++; }
+            | const_tip nume_functie '(' ')' { insert_functie_tip($<iValue>1); m++; }
+            | STRUCT nume_struct '{' continut_struct '}' lista_id_s { o++; }
             ;
+
 nume_functie : ID { insert_functie_nume($1); strcpy(functie_curenta,$1); strcpy(status_curent,$1); printf("functia: %s\n",$1); }
              ;
-nume_struct : ID { strcpy(struct_curent,$1); strcpy(status_curent,$1); }
+nume_struct : ID { strcpy(struct_curent,$1); strcpy(status_curent,$1); insert_struct($1); }
             ;
 
-lista_id_s : variabila_s { n++; }
-           | lista_id_s ',' variabila_s
+lista_id_s : variabila_s 
+           | lista_id_s ',' variabila_s 
            ;
 
-variabila_s    : ID { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(-1); insert_status(struct_curent); }
-               | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(-1); insert_status(struct_curent); }
+variabila_s    : ID { elimin_tot_dupa_var($1); insert_variabila_struct($1); }
+               | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_variabila_struct($1); }
                ;
+
+continut_struct : declaratie_struct ';'
+                | continut_struct declaratie_struct ';'
+                ;
+
+declaratie_struct : tip lista_id_init_s 
+                  | const_tip lista_asignari_s 
+                  ;
+lista_id_init_s   : variabila_struct 
+                  | initializare_struct 
+                  | lista_id_init_s ',' variabila_struct 
+                  | lista_id_init_s ',' initializare_struct 
+                  ;
+variabila_struct    : ID { elimin_tot_dupa_var($1); insert_campuri($1,tip_curent);}
+                    | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_campuri($1,tip_curent); }
+                    ;
+lista_asignari_s    : initializare_struct
+                    | lista_asignari ',' initializare_struct 
+                    ;
+initializare_struct : ID ASSIGN expr { elimin_tot_dupa_var($1); insert_campuri($1,tip_curent); /*insert_valoare($1,iValoareToChar($<iValue>3));*/} 
+                    ;
+
 
 initializare : ID ASSIGN expr { insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); /*insert_valoare($1,iValoareToChar($<iValue>3));*/} 
 /*pot initializa doar cu expresii, si avand in vedere ca facem arbori pt expresii, pot fi doar int*/
@@ -288,15 +371,6 @@ lista_id_init     : variabila { n++; }
                   | lista_id_init ',' variabila { n++; }
                   | lista_id_init ',' initializare { n++; }
                   ;
-
-continut_struct : declaratie_struct ';'
-                | continut_struct declaratie_struct ';'
-                ;
-
-declaratie_struct : tip lista_id_init 
-                  | const_tip lista_asignari 
-                  ;
-
 dim : NR
     ;
 

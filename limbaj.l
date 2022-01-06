@@ -22,7 +22,6 @@
 "for" {return FOR;}
 "if" {return IF;}
 "else" {return ELSE;}
-",; " {return DA;}
 [_a-zA-Z][_a-zA-Z0-9]* {yylval.nume = yytext; return ID;}        //iduri ce incep cu @, al 2 lea e _ sau litera si restul litere+cifre
 "=" {return ASSIGN;}  
 "<" {return LW;}  

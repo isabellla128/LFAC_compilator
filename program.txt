@@ -7,8 +7,10 @@ end_global
 begin_define
 
 float fnc();
+const char constr_sir(int tra);
 int f();
-struct nume_s {int z; } s;
+const float suma();
+struct nume { int z; } s;
 
 end_define
 
