@@ -211,11 +211,19 @@ void updateSimbolValoare(char* simbol, char* valoare)
   strcpy(sym[getIndiceSimbol(simbol)].valoare,valoare);  
 }
 
-
+void elimin_tot_dupa_var(char s[100])
+{
+    int i=0;
+    while(i<strlen(s)&&((s[i]>='a'&&s[i]<='z')||(s[i]>='A'&&s[i]<='Z')||s[i]=='_'))
+    {
+        i++;    
+    }
+    s[i]='\0';
+}
 
 %}
 %union {char* nume; int iValue; float fValue; char* sValue;}
-%token DA BGIN END ASSIGN CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE 
+%token BGIN END ASSIGN CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE
 %token <nume> ID
 %token <iValue> NR BOOL INT FLOAT CHAR STRING
 %start progr
@@ -267,8 +275,8 @@ lista_id_s : variabila_s { n++; }
            | lista_id_s ',' variabila_s
            ;
 
-variabila_s    : ID { insert_simbol($1); insert_tip(-1); insert_status(struct_curent); }
-               | ID '[' dim ']' { insert_simbol($1); insert_tip(-1); insert_status(struct_curent); }
+variabila_s    : ID { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(-1); insert_status(struct_curent); }
+               | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(-1); insert_status(struct_curent); }
                ;
 
 initializare : ID ASSIGN expr { insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); /*insert_valoare($1,iValoareToChar($<iValue>3));*/} 
@@ -297,8 +305,8 @@ lista_asignari    : initializare { n++; }
                   ;
 
 
-variabila      : ID { insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); printf("%s# %d %s\n",$1,tip_curent,status_curent);}
-               | ID '[' dim ']' { insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); }
+variabila      : ID { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); printf("%s# %d %s\n",$1,tip_curent,status_curent);}
+               | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); }
                ;
 
 variabila_f      : ID {insert_param(functie_curenta,$1,tip_curent);}
@@ -412,5 +420,3 @@ for(i=0;i<m;i++)
 }
 printf("%d %d\n",n,m);
 } 
-
-
