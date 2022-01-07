@@ -1,6 +1,8 @@
 begin_global
 
-int a,b,c ;
+int a=5,b,c ;
+char ccc=*abcdef*;
+
 
 end_global
 
@@ -9,14 +11,16 @@ begin_define
 float fnc()
 { int b;
   char cc; string sir;
+  const int d=1000;
   a=2;
 }
-const char constr_sir(int tra, float ff, char ch);
+const char constr_sir(int tra, float ff, char ch, const char c);
 int f(float c);
 const float suma()
 {char c; c=8;}
 
 struct nume { 
+            const int x=10;
             int z; 
             string d;
             float c;
