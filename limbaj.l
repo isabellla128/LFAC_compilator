@@ -1,4 +1,3 @@
-
 %{
 #include <stdio.h>
 #include "y.tab.h"
@@ -22,7 +21,8 @@
 "for" {return FOR;}
 "if" {return IF;}
 "else" {return ELSE;}
-[_a-zA-Z][_a-zA-Z0-9]* {yylval.nume = yytext; return ID;}        //iduri ce incep cu @, al 2 lea e _ sau litera si restul litere+cifre
+"print" {return PRINT;}
+[_a-zA-Z][_a-zA-Z0-9]* {yylval.nume = yytext; return ID;} 
 "=" {return ASSIGN;}  
 "<" {return LW;}  
 ">" {return BG;}  
@@ -30,6 +30,7 @@
 ">=" {return BGEQ;}
 "==" {return EQ;}
 "!=" {return NOTEQ;}  
+[0-9]+[0-9]*\.[0-9]+[0-9]* { yylval.fValue=atof(yytext); return NR_REAL;}
 [0-9]+ {yylval.iValue = atoi(yytext); return NR;}
 [ \t] ;
 \n {yylineno++;}                            

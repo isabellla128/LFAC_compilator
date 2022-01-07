@@ -1,12 +1,21 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 
 extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
+
+struct AST
+{
+    char symb[100];
+    int nr;
+    char type[100];
+    struct AST* left;
+    struct AST* right;
+};
+
 struct simboluri { char simbol[100];
                    char tip[100];
                    char sValue[100];
@@ -31,6 +40,7 @@ int n=0, m=0, o=0; /*nr simboluri, nr functii, nr structuri*/
 
 char functie_curenta[50]="", struct_curent[50]="", status_curent[50]=""; /*status:global,numele functiei,numele structului*/
 int tip_curent=100;
+int ifuri=1, whileuri=1, foruri=1;
 
 void insert_struct(char nume[50])
 {
@@ -235,7 +245,16 @@ int getIndiceSimbol (char* simbol)
 void elimin_tot_dupa_var(char s[100])
 {
     int i=0;
-    while(i<strlen(s)&&((s[i]>='a'&&s[i]<='z')||(s[i]>='A'&&s[i]<='Z')||s[i]=='_'))
+    while(i<strlen(s)&&((s[i]>='a'&&s[i]<='z')||(s[i]>='A'&&s[i]<='Z')||s[i]=='_')||(s[i]>='0'&&s[i]<='9'))
+    {
+        i++;    
+    }
+    s[i]='\0';
+}
+void elimin_tot_dupa_ghilimele(char s[100])
+{
+    int i=0;
+    while(i<strlen(s)&&s[i]!='"')
     {
         i++;    
     }
@@ -273,14 +292,74 @@ void insert_variabila_struct(char aux[50])
     }
 }
 
+struct AST* buildAST(char root[100], struct AST* left, struct AST* right, char type[100])
+{
+    struct AST* r=malloc(sizeof(struct AST));
+    r->left=left;
+    r->right=right;
+    strcpy(r->symb, root);
+    strcpy(r->type, type);
+    return r;
+}
+struct AST* buildASTt(int x, struct AST* left, struct AST* right, char type[100])
+{
+    struct AST* r=malloc(sizeof(struct AST));
+    r->left=left;
+    r->right=right;
+    r->nr=x;
+    strcpy(r->type, type);
+    return r;
+}
+int evalAST(struct AST* root)
+{
+    if(root==NULL)
+        return 0;
+    if(root->left==NULL&&root->right==NULL)
+    {
+        if(strcmp(root->type, "NUMBER")==0)
+            return root->nr;
+        else
+            if(strcmp(root->type, "IDENTIFIER")==0)
+            {
+                int pozitie=getIndiceSimbol(root->symb);
+                return sym[pozitie].iValue;   //valoarea luata din tabel
+            }
+            else
+                return 0;
+    }
+    if(strcmp(root->symb, "+")==0)
+        return evalAST(root->left)+evalAST(root->right);
+    else
+        if(strcmp(root->symb, "-")==0)
+            return evalAST(root->left)-evalAST(root->right);
+        else
+            if(strcmp(root->symb, "*")==0)
+                return evalAST(root->left)*evalAST(root->right);
+            else
+                if(strcmp(root->symb, "/")==0)
+                    return evalAST(root->left)/evalAST(root->right);
+}
+void combina(char s[100], char t[100])
+{
+    char aux[100];
+    strcpy(aux, s);
+    strcat(aux, ".");
+    strcat(aux, t);
+    strcpy(s, aux);
+}
 %}
-%union {char* nume; int iValue; float fValue; char* sValue;}
-%token BGIN END ASSIGN CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE
+%union {char* nume; int iValue; float fValue; char* sValue; struct AST * node; }
+%token BGIN END ASSIGN CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE PRINT 
 %token <nume> ID
+%token <fValue> NR_REAL
 %token <iValue> NR BOOL INT FLOAT CHAR STRING
 %start progr
-%left '+'
-%left '*'
+%left '+' '-'
+%left '*' '/'
+%left OR 
+%left AND
+%left NOT
+%left LW BG LWEQ BGEQ EQ NOTEQ
 %%
 progr: declaratii_globale declaratii_user bloc {printf("program corect sintactic\n");}
      ;
@@ -356,8 +435,9 @@ variabila_struct    : ID { elimin_tot_dupa_var($1); insert_campuri($1,tip_curent
 lista_asignari_s    : initializare_struct
                     | lista_asignari ',' initializare_struct 
                     ;
-initializare_struct : ID ASSIGN expr { elimin_tot_dupa_var($1); insert_campuri($1,tip_curent); insert_campuri_iValue($1,$<iValue>3);} 
+initializare_struct : ID ASSIGN expr { elimin_tot_dupa_var($1); insert_campuri($1,tip_curent); insert_campuri_iValue($1,evalAST($<node>3));} 
                     | ID ASSIGN sir { elimin_tot_dupa_var($1); insert_campuri($1,tip_curent); insert_campuri_sValue($1,$<nume>3); }
+                    | ID ASSIGN real { elimin_tot_dupa_var($1); insert_campuri($1, tip_curent); insert_campuri_fValue($1,$<fValue>3); }
                     ;
 
 
@@ -371,15 +451,18 @@ variabila      : ID { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip
                | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); }
                ;
 
-initializare : ID ASSIGN expr { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); insert_iValue($1,$<iValue>3);} 
+initializare : ID ASSIGN expr { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); insert_iValue($1,evalAST($<node>3));} 
              | ID ASSIGN sir { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); insert_sValue($1,$<nume>3); }
+             | ID ASSIGN real { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); insert_fValue($1,$<fValue>3); }
              ;
 /*pot initializa doar cu expresii, si avand in vedere ca facem arbori pt expresii, pot fi doar int*/
 
+real : NR_REAL { $<fValue>$=$1; }
+     ;
 
 dim : NR
     ;
-sir : '*' ID '*' { elimin_tot_dupa_var($2); $<nume>$=$2;}
+sir : '"' ID '"' { elimin_tot_dupa_var($2); $<nume>$=$2;}
     ;
 
 lista_asignari    : initializare { n++; }
@@ -411,53 +494,97 @@ list : statement ';'
      ;
 
 /* instructiune */
-statement : elem ASSIGN expr 
+statement : elem ASSIGN expr { insert_iValue($<nume>1, evalAST($<node>3)); }
           |	ID '(' lista_apel ')'
+          | PRINT '(' '"' text '"' ',' expr ')' { elimin_tot_dupa_ghilimele($<nume>4); printf("%s %d\n",$<nume>4, evalAST($<node>7)); }
           ;
 
-control_statement : WHILE '(' expr_bool ')' '{' statement ';' '}'
-                  | FOR '(' pentru_for ')' '{' statement ';' '}'
-                  | IF '(' expr_bool ')' '{' statement ';' '}'
+text : ID
+     | text ID
+     | caracter
+     | text caracter
+     | text NR
+     | NR
+     ;
+     
+
+caracter : ' '
+         | '+'
+         | '-'
+         | '*'
+         | '/'
+         | ';'
+         | ':'
+         ;
+
+control_statement : WHILE '(' expr_bool ')' '{' list '}' { if($<iValue>3!=0) printf("while %d este ADEVARAT\n",whileuri); else printf("while %d este FALS\n",yylineno); whileuri++; }
+                  | WHILE '(' expr_b ')' '{' list '}' { if($<iValue>3!=0) printf("while %d este ADEVARAT\n",whileuri); else printf("while %d este FALS\n",yylineno); whileuri++; }
+                  | FOR '(' pentru_for ')' '{' list '}' { if($<iValue>3!=0) printf("for %d este ADEVARAT\n",foruri); else printf("for %d este FALS\n",foruri); foruri++; }
+                  | IF '(' expr_bool ')' '{' list '}' { if($<iValue>3!=0) printf("if %d este ADEVARAT\n",ifuri); else printf("if %d este FALS\n",ifuri); ifuri++; }
+                  | IF '(' expr_bool ')' '{' list '}' ELSE '{' list '}' { if($<iValue>3!=0) printf("if %d este ADEVARAT, nu se va executa else \n",ifuri); else printf("if %d este FALS, se va executa else\n",ifuri); ifuri++; }
+                  | IF '(' expr_b ')' '{' list '}' { if($<iValue>3!=0) printf("if %d este ADEVARAT\n",ifuri); else printf("if %d este FALS\n",ifuri); ifuri++; }
+                  | IF '(' expr_b ')' '{' list '}' ELSE '{' list '}' { if($<iValue>3!=0) printf("if %d este ADEVARAT, nu se va executa else \n",ifuri); else printf("if %d este FALS, se va executa else\n",ifuri); ifuri++; }
                   ;
 
-pentru_for : elem ASSIGN expr ';' expr_bool ';' expr
-           | elem ASSIGN expr ';' ';' expr
-           | elem ASSIGN expr ';' ';'
-           | elem ASSIGN expr ';' expr_bool ';'
-           | ';' expr_bool ';' expr
-           | ';' expr_bool ';'
-           | ';' ';' expr
-           | ';' ';'
+pentru_for : elem ASSIGN expr ';' expr_bool ';' elem ASSIGN expr   { $<iValue>1=evalAST($<node>3); $<iValue>$=$<iValue>5; $<iValue>7=evalAST($<node>9); }
+           | elem ASSIGN expr ';' ';' elem ASSIGN expr { $<iValue>1=evalAST($<node>3); $<iValue>$=0; $<iValue>6=evalAST($<node>8); }
+           | elem ASSIGN expr ';' ';' { $<iValue>1=evalAST($<node>3); $<iValue>$=0; }
+           | elem ASSIGN expr ';' expr_bool ';' { $<iValue>1=evalAST($<node>3); $<iValue>$=$<iValue>5; }
+           | ';' expr_bool ';' elem ASSIGN expr { $<iValue>$=$<iValue>2; $<iValue>4=evalAST($<node>6); }
+           | ';' expr_bool ';' { $<iValue>$=$<iValue>2; }  
+           | ';' ';' elem ASSIGN expr { $<iValue>3=evalAST($<node>5); $<iValue>$=0; }
+           | ';' ';' { $<iValue>$=0; }
            ;
 
-lista_apel : expr
-           | lista_apel ',' expr
+lista_apel : expr_b
+           | lista_apel ',' expr_b
            ;
 
-expr : elem_NR { $<iValue>$=$<iValue>1; }  
-     | expr '+' expr
-     | expr '*' expr
-     | ID '(' lista_apel ')'
-     | '(' expr ')'
+expr : expr '+' expr         { $<node>$=buildAST("+",$<node>1, $<node>3, "OP"); }
+     | expr '-' expr         { $<node>$=buildAST("-",$<node>1, $<node>3, "OP"); }
+     | expr '*' expr         { $<node>$=buildAST("*",$<node>1, $<node>3, "OP"); }
+     | expr '/' expr         { $<node>$=buildAST("/",$<node>1, $<node>3, "OP"); }
+     | '(' expr ')'          { $<node>$=$<node>2; }
+     | NR                    { $<node>$=buildASTt($1, (struct AST *)NULL, (struct AST *)NULL, "NUMBER"); }
+     | elem                  { $<node>$=buildAST($<nume>1, (struct AST *)NULL, (struct AST *)NULL, "IDENTIFIER"); }
+     | ID '(' lista_apel ')' { $<node>$=buildASTt(0, (struct AST *)NULL, (struct AST *)NULL, "NUMBER"); }
      ;
-        
-elem : ID
-     | ID '.' ID
-     | ID '[' ID ']'
-     | ID '[' NR ']'
+    
+expr_b : expr_b '+' expr_b     { $<iValue>$ = $<iValue>1 + $<iValue>3; }
+       | expr_b '-' expr_b     { $<iValue>$ = $<iValue>1 - $<iValue>3; }
+       | expr_b '*' expr_b     { $<iValue>$ = $<iValue>1 * $<iValue>3; }
+       | expr_b '/' expr_b     { $<iValue>$ = $<iValue>1 / $<iValue>3; }
+       | '(' expr_b ')'        { $<iValue>$ = $<iValue>2; }
+       | NR                    { $<iValue>$ = $<iValue>1; }
+       | elem                  { $<iValue>$ = $<iValue>1; }
+       | ID '(' lista_apel ')' { $<iValue>$ = 0; }
+       ;      
+
+elem : ID            { elimin_tot_dupa_var($1); $<nume>$ = $1;}
+     | ID '.' ID     { elimin_tot_dupa_var($1); elimin_tot_dupa_var($3); combina($1, $3); strcpy($<nume>$, $1); }
+     | ID '[' ID ']' { $<iValue>$ = 0; }
+     | ID '[' NR ']' { $<iValue>$ = 0; }
      ;
 
-elem_NR : elem
-        | NR {$<iValue>$=$1;}
-        ;
-
-expr_bool : elem_NR LW elem_NR
-          | elem_NR BG elem_NR
-          | elem_NR LWEQ elem_NR
-          | elem_NR BGEQ elem_NR
-          | elem_NR EQ elem_NR
-          | elem_NR NOTEQ elem_NR
+expr_bool : expr_bool AND expr_bool { $<iValue>$ = $<iValue>1 && $<iValue>3; } 
+          | expr_b  AND expr_bool   { $<iValue>$ = $<iValue>1 && $<iValue>3; } 
+          | expr_bool AND expr_b    { $<iValue>$ = $<iValue>1 && $<iValue>3; }  
+          | expr_b  AND expr_b      { $<iValue>$ = $<iValue>1 && $<iValue>3; } 
+          | expr_bool OR expr_bool  { $<iValue>$ = $<iValue>1 || $<iValue>3; } 
+          | expr_bool OR expr_b     { $<iValue>$ = $<iValue>1 || $<iValue>3; } 
+          | expr_b  OR expr_bool    { $<iValue>$ = $<iValue>1 || $<iValue>3; } 
+          | expr_b  OR expr_b       { $<iValue>$ = $<iValue>1 || $<iValue>3; } 
+          | bool                    { $<iValue>$ = $<iValue>1; } 
           ;
+bool : expr_b LW expr_b      { $<iValue>$ = $<iValue>1 < $<iValue>3; } 
+     | expr_b BG expr_b      { $<iValue>$ = $<iValue>1 > $<iValue>3;  }
+     | expr_b LWEQ expr_b    { $<iValue>$ = $<iValue>1 <= $<iValue>3;  }
+     | expr_b BGEQ expr_b    { $<iValue>$ = $<iValue>1 >= $<iValue>3;  }
+     | expr_b EQ expr_b      { $<iValue>$ = $<iValue>1 == $<iValue>3;  }
+     | expr_b NOTEQ expr_b   { $<iValue>$ = $<iValue>1 != $<iValue>3;  }
+     | NOT '(' expr_bool ')' { $<iValue>$ = !($<iValue>3); }
+     | NOT '(' expr_b  ')'   { $<iValue>$ = !($<iValue>3); }
+     ;
 
 
 

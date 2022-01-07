@@ -1,35 +1,40 @@
 begin_global
 
-int a=5,b,c ;
-char ccc=*abcdef*;
-
+int a;
+const int b=3;
+float ruj;
+const float rata=5.6;
+char s;
+const char e=s;
+const string floare="trandafir";
+string inima;
 
 end_global
 
 begin_define
 
-float fnc()
-{ int b;
-  char cc; string sir;
-  const int d=1000;
-  a=2;
+float nr2(int param1, int x2x, const int z)
+{
+    int a;
+    print("DA x+1",11+11);
+   
 }
-const char constr_sir(int tra, float ff, char ch, const char c);
-int f(float c);
-const float suma()
-{char c; c=8;}
 
-struct nume { 
-            const int x=10;
-            int z; 
-            string d;
-            float c;
-            } s,ss;
+struct popcorn 
+{
+    int mamaliga=7, soare;
+    float mergem=88.9;
+}interesant, telefon;
+
 
 end_define
 
 begin_progr
 
-a=2;
+while(3<4)
+{
+    print("interesaaaaant chiar: ", interesant.mamaliga+nr2(2, 2, 2)+1);
+}
+
 
 end_progr
