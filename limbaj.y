@@ -7,23 +7,23 @@
 extern FILE* yyin;
 extern char* yytext;
 extern int yylineno;
-struct simboluri { char simbol[20];
-                   char tip[10];
-                   char valoare[10];
-                   char status[50];
+struct simboluri { char simbol[100];
+                   char tip[100];
+                   char valoare[100];
+                   char status[100];
                  } sym[100];    /*symbol table*/
 
 /*tipuri: 0-bool 1-int 2-float 3-char 4-string CONST: 5,6,7,8,9*/
 
 struct functii { int nr_param;
                  struct simboluri param[100];
-                 char nume[20];
-                 char tip_functie[10];
+                 char nume[100];
+                 char tip_functie[100];
                } func[100]; /*function table*/
 
 struct structuri { int nr; /*nr campuri*/
                    struct simboluri campuri[100];
-                   char nume[20];
+                   char nume[100];
                  } str[100];
 
 int n=0, m=0, o=0; /*nr simboluri, nr functii, nr structuri*/
@@ -54,36 +54,39 @@ char* ftoa(float n)
 void insert_struct(char nume[50])
 {
    strcpy(str[o].nume,nume);
-   str[o].nr=0; 
 }
 
 void insert_campuri(char simbol[50], int tip)
-{
-    strcpy(str[o].campuri[str[o].nr].simbol,simbol);
+{   
+    int i=o;
+    int j=str[i].nr;
+    if(tip==-1) strcpy(str[i].campuri[j].tip, "STRUCT");
+    else
+    if(tip == 0) strcpy(str[i].campuri[j].tip, "BOOL");
+    else
+    if(tip == 1) strcpy(str[i].campuri[j].tip, "INT");
+    else
+    if(tip == 2) strcpy(str[i].campuri[j].tip, "FLOAT");
+    else
+    if(tip == 3) strcpy(str[i].campuri[j].tip, "CHAR");
+    else
+    if(tip == 4) strcpy(str[i].campuri[j].tip, "STRING");
+    else
+    if(tip == 5) strcpy(str[i].campuri[j].tip, "CONST BOOL");
+    else
+    if(tip == 6) strcpy(str[i].campuri[j].tip, "CONST INT");
+    else
+    if(tip == 7) strcpy(str[i].campuri[j].tip, "CONST FLOAT");
+    else
+    if(tip == 8) strcpy(str[i].campuri[j].tip, "CONST CHAR");
+    else
+    if(tip == 9) strcpy(str[i].campuri[j].tip, "CONST STRING");
 
-    if(tip==-1) strcpy(str[o].campuri[str[o].nr].tip, "STRUCT");
-    else
-    if(tip == 0) strcpy(str[o].campuri[str[o].nr].tip, "BOOL");
-    else
-    if(tip == 1) strcpy(str[o].campuri[str[o].nr].tip, "INT");
-    else
-    if(tip == 2) strcpy(str[o].campuri[str[o].nr].tip, "FLOAT");
-    else
-    if(tip == 3) strcpy(str[o].campuri[str[o].nr].tip, "CHAR");
-    else
-    if(tip == 4) strcpy(str[o].campuri[str[o].nr].tip, "STRING");
-    else
-    if(tip == 5) strcpy(str[o].campuri[str[o].nr].tip, "CONST BOOL");
-    else
-    if(tip == 6) strcpy(str[o].campuri[str[o].nr].tip, "CONST INT");
-    else
-    if(tip == 7) strcpy(str[o].campuri[str[o].nr].tip, "CONST FLOAT");
-    else
-    if(tip == 8) strcpy(str[o].campuri[str[o].nr].tip, "CONST CHAR");
-    else
-    if(tip == 9) strcpy(str[o].campuri[str[o].nr].tip, "CONST STRING"); 
+    strcpy(str[i].campuri[j].simbol,simbol);
     
-    str[o].nr++;
+    str[i].nr++;
+
+    
 }
 
 void insert_simbol(char simbol[50])
@@ -92,7 +95,8 @@ void insert_simbol(char simbol[50])
     for(i=0;i<n;i++)
     {
         if( strcmp(sym[i].simbol,simbol) == 0 ) 
-            { 
+            {
+                if(strcmp(status_curent,sym[i].status) == 0) 
                 printf("Eroare! Simbolul %s a fost deja declarat!\n",sym[i].simbol);
             }
     }
@@ -197,7 +201,7 @@ void insert_functie_nume(char nume[50])
 int getIndiceFunctie(char nume[50])
 {
     int i;
-    for(i=0;i<m;i++)
+    for(i=0;i<=m;i++)
         if(strcmp(func[i].nume,nume) == 0) return i;
     return -1;
 }
@@ -262,19 +266,18 @@ void elimin_tot_dupa_var(char s[100])
 }
 void insert_variabila_struct(char aux[50])
 {   
-    char caux[50]="";
-    strcpy(caux,aux);
+    char p[50];
     int i;
     for(i=0;i<str[o].nr;i++)
     {    
-        strcat(aux,".");
-        strcat(aux,str[o].campuri[i].simbol);
-        insert_simbol(aux);
+        strcpy(p,aux);
+        strcat(p,".");
+        strcat(p,str[o].campuri[i].simbol);
+        insert_simbol(p);
         strcpy(sym[n].tip,str[o].campuri[i].tip);
-        insert_valoare(aux, str[o].campuri[i].valoare);
+        insert_valoare(p, str[o].campuri[i].valoare);
         insert_status(status_curent);
-        strcpy(aux,"");
-        strcpy(aux,caux);
+        strcpy(p,"");
         n++;
     }
 }
@@ -316,18 +319,22 @@ tip : BOOL { $<iValue>$=$1; tip_curent=$<iValue>1; }
 
 const_tip : CONST tip { tip_curent=tip_curent+5; $<iValue>$=tip_curent;}
 
-definitii  : definitie ';'
-	       | definitii definitie ';'
+definitii  : definitie 
+	       | definitii definitie 
 	       ;
 
-definitie   : tip nume_functie '(' lista_param ')'{ insert_functie_tip($<iValue>1); m++; }
-            | tip nume_functie '(' ')' { insert_functie_tip($<iValue>1); m++; }
-            | const_tip nume_functie '(' lista_param ')'{ insert_functie_tip($<iValue>1); m++; }
-            | const_tip nume_functie '(' ')' { insert_functie_tip($<iValue>1); m++; }
-            | STRUCT nume_struct '{' continut_struct '}' lista_id_s { o++; }
+definitie   : tip nume_functie '(' lista_param ')' ';'{ insert_functie_tip($<iValue>1); m++; }
+            | tip nume_functie '(' ')' ';'{ insert_functie_tip($<iValue>1); m++; }
+            | const_tip nume_functie '(' lista_param ')'';'{ insert_functie_tip($<iValue>1); m++; }
+            | const_tip nume_functie '(' ')' ';'{ insert_functie_tip($<iValue>1); m++; }
+            | STRUCT nume_struct '{' continut_struct '}' lista_id_s ';'{ o++; }
+            | tip nume_functie '(' lista_param ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }
+            | tip nume_functie '(' ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }
+            | const_tip nume_functie '(' lista_param ')''{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }
+            | const_tip nume_functie '(' ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }            
             ;
 
-nume_functie : ID { insert_functie_nume($1); strcpy(functie_curenta,$1); strcpy(status_curent,$1); printf("functia: %s\n",$1); }
+nume_functie : ID { insert_functie_nume($1); strcpy(functie_curenta,$1); strcpy(status_curent,$1); }
              ;
 nume_struct : ID { strcpy(struct_curent,$1); strcpy(status_curent,$1); insert_struct($1); }
             ;
@@ -362,30 +369,26 @@ initializare_struct : ID ASSIGN expr { elimin_tot_dupa_var($1); insert_campuri($
                     ;
 
 
-initializare : ID ASSIGN expr { insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); /*insert_valoare($1,iValoareToChar($<iValue>3));*/} 
-/*pot initializa doar cu expresii, si avand in vedere ca facem arbori pt expresii, pot fi doar int*/
-
-
 lista_id_init     : variabila { n++; }
                   | initializare { n++; }
                   | lista_id_init ',' variabila { n++; }
                   | lista_id_init ',' initializare { n++; }
                   ;
+
+variabila      : ID { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent);}
+               | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); }
+               ;
+
+initializare : ID ASSIGN expr { insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); /*insert_valoare($1,iValoareToChar($<iValue>3));*/} 
+/*pot initializa doar cu expresii, si avand in vedere ca facem arbori pt expresii, pot fi doar int*/
+
+
 dim : NR
     ;
 
 lista_asignari    : initializare { n++; }
                   | lista_asignari ',' initializare { n++; }
                   ;
-
-
-variabila      : ID { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); printf("%s# %d %s\n",$1,tip_curent,status_curent);}
-               | ID '[' dim ']' { elimin_tot_dupa_var($1); insert_simbol($1); insert_tip(tip_curent); insert_status(status_curent); }
-               ;
-
-variabila_f      : ID {insert_param(functie_curenta,$1,tip_curent);}
-                 | ID '[' dim ']' {insert_param(functie_curenta,$1,tip_curent);}
-                 ;
 
 lista_param : param
             | lista_param ','  param 
@@ -394,6 +397,11 @@ lista_param : param
 param   : tip variabila_f 
         | const_tip variabila_f 
         ; 
+
+
+variabila_f      : ID {elimin_tot_dupa_var($1); insert_param(functie_curenta,$1,tip_curent);}
+                 | ID '[' dim ']' {elimin_tot_dupa_var($1); insert_param(functie_curenta,$1,tip_curent);}
+                 ;
 
 /* bloc */
 bloc : BGIN list END  
@@ -465,7 +473,7 @@ printf("eroare: %s la linia:%d\n",s,yylineno);
 int main(int argc, char** argv)
 {
 int i;
-for(i=0;i<100;i++) func[i].nr_param=0;
+for(i=0;i<100;i++) {func[i].nr_param=0; str[i].nr=0;}
 
 yyin=fopen(argv[1],"r");
 yyparse();
@@ -477,7 +485,7 @@ for(i=0;i<n;i++)
     printf("%s | %s | %s | %s\n",sym[i].simbol,sym[i].tip,sym[i].valoare,sym[i].status);
 }
 printf("FUNCTII:\n");
-printf("TIP | NUME | NR_PARAM | PARAMETRI\n");
+printf("TIP | NUME | NR_PARAM | TIP_PARAMETRU PARAMETRU\n");
 for(i=0;i<m;i++)
 {
     printf("%s | %s | %d | ",func[i].tip_functie, func[i].nume, func[i].nr_param);
@@ -487,7 +495,7 @@ for(i=0;i<m;i++)
         int j;
         for(j=0;j<func[i].nr_param;j++)
         {
-            printf("%s ",func[i].param[j].simbol);
+            printf("%s %s ",func[i].param[j].tip,func[i].param[j].simbol);
         }
         printf("\n");
     }

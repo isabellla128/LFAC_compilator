@@ -6,11 +6,21 @@ end_global
 
 begin_define
 
-float fnc();
-const char constr_sir(int tra);
-int f();
-const float suma();
-struct nume { int z; } s;
+float fnc()
+{ int b;
+  char cc; string sir;
+  a=2;
+}
+const char constr_sir(int tra, float ff, char ch);
+int f(float c);
+const float suma()
+{char c; c=8;}
+
+struct nume { 
+            int z; 
+            string d;
+            float c;
+            } s,ss;
 
 end_define
 
