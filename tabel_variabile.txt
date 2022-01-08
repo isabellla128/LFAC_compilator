@@ -1,0 +1,19 @@
+VARIABILE
+
+SIMBOL | TIP | VALOARE | STATUS
+a | INT | 20 | global
+b | CONST INT | 3 | global
+ruj | FLOAT | 0.000000 | global
+rata | FLOAT | 6.600000 | global
+s | CHAR |  | global
+e | CONST CHAR |  | global
+floare | CONST STRING | trandafir | global
+inima | STRING | dasda | global
+ab | INT | 10 | nr2
+fr | INT | 5 | nr3
+interesant.mamaliga | INT | 7 | popcorn
+interesant.soare | INT | 0 | popcorn
+interesant.mergem | FLOAT | 88.900002 | popcorn
+telefon.mamaliga | INT | 7 | popcorn
+telefon.soare | INT | 0 | popcorn
+telefon.mergem | FLOAT | 88.900002 | popcorn

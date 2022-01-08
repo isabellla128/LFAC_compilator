@@ -1,0 +1,5 @@
+FUNCTII
+
+TIP | NUME | NR_PARAM | TIP_PARAMETRU PARAMETRU
+FLOAT | nr2 | 3 | INT param1 INT x2x INT z 
+INT | nr3 | 1 | CHAR d 

@@ -36,8 +36,13 @@ struct structuri { int nr; /*nr campuri*/
                    char nume[100];
                  } str[100];
 
+struct parametrii
+{
+    char tip[100];
+}verif[100];
+int nr_s=0;
 int n=0, m=0, o=0; /*nr simboluri, nr functii, nr structuri*/
-
+int err=0;
 char functie_curenta[50]="", struct_curent[50]="", status_curent[50]=""; /*status:global,numele functiei,numele structului*/
 int tip_curent=100;
 int ifuri=1, whileuri=1, foruri=1;
@@ -102,7 +107,12 @@ void insert_simbol(char simbol[50])
         if( strcmp(sym[i].simbol,simbol) == 0 ) 
             {
                 if(strcmp(status_curent,sym[i].status) == 0) 
-                printf("Eroare! Simbolul %s a fost deja declarat!\n",sym[i].simbol);
+                {
+                    char eroare[200];
+                    sprintf(eroare, "simbolul %s a fost deja declarat, iar eroarea este",sym[i].simbol);
+                    yyerror(eroare);
+                    exit(1);
+                }
             }
     }
 
@@ -140,27 +150,51 @@ void insert_status(char* status)
 void insert_iValue(char simbol[10], int valoare)
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1) printf("Nu exista simbolul %s in tabel.\n",simbol);
+    if(i==-1)
+    {
+        char eroare[200];
+        sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
+        yyerror(eroare);
+        exit(1);
+    }
     else
     sym[i].iValue=valoare;
 }
 void insert_fValue(char simbol[10], float valoare)
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1) printf("Nu exista simbolul %s in tabel.\n",simbol);
+    if(i==-1)
+    {
+        char eroare[200];
+        sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
+        yyerror(eroare);
+        exit(1);
+    }
     else
     sym[i].fValue=valoare;
 }
 void insert_sValue(char simbol[10], char valoare[100])
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1) printf("Nu exista simbolul %s in tabel.\n",simbol);
+    if(i==-1)
+    {
+        char eroare[200];
+        sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
+        yyerror(eroare);
+        exit(1);
+    }
     else
     {
         if(strcmp(sym[i].tip,"CHAR")==0 || strcmp(sym[i].tip,"CONST CHAR")==0)
-            {
-                if(strlen(valoare) != 1) printf("Eroare! Char trebuie sa aiba un singur caracter!\n");
-            }
+        {
+                if(strlen(valoare) != 1)
+                {
+                    char eroare[200];
+                    sprintf(eroare, "functia nu a fost declarata, iar eroarea este");
+                    yyerror(eroare);
+                    exit(1);
+                }
+        }
         strcpy(sym[i].sValue,valoare);
     }
 }
@@ -347,6 +381,73 @@ void combina(char s[100], char t[100])
     strcat(aux, t);
     strcpy(s, aux);
 }
+
+void caut_functia_in_tabel(char s[100])
+{
+    
+    int gasit=0;
+    for(int i=0;i<m;i++)
+    {
+        if(strcmp(s, func[i].nume)==0)
+            gasit=1;
+    }
+    if(gasit==0)
+    {
+        char eroare[200];
+        sprintf(eroare, "functia nu este definita, iar eroarea este");
+        yyerror(eroare);
+        exit(1);
+    }
+}
+char* getTip(char s[100])
+{
+    int i=getIndiceSimbol(s);
+    return sym[i].tip;
+}
+void verif_stanga_dreapta(char nume[100], char tip[100])
+{
+    if(strcmp(getTip(nume),tip)!=0)
+    {
+        char eroare[200];
+        sprintf(eroare, "variabilele nu au acelasi tip, iar eroarea este");
+        yyerror(eroare);
+        exit(1);
+    }
+}
+char* getTipFunctie(char s[100])
+{
+    int i=getIndiceFunctie(s);
+    return func[i].tip_functie;
+}
+
+void verif_param(char s[100])
+{
+    int i=getIndiceFunctie(s);
+    for(int j=0;j<func[i].nr_param;j++)
+    {
+        if(strcmp(func[i].param[j].tip, verif[j].tip)!=0)
+        {
+            char eroare[200];
+            sprintf(eroare, "parametrii apelati nu au acelasi tip cu parametrii functiei, iar eroarea este");
+            yyerror(eroare);
+            exit(1);
+        }
+    }
+    
+}
+
+void caut_variabila_in_tabel(char s[100])
+{
+    int i=getIndiceSimbol(s);
+    if(i==-1)
+    {
+        char eroare[200];
+        sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
+        yyerror(eroare);
+        exit(1);
+    }
+}
+
 %}
 %union {char* nume; int iValue; float fValue; char* sValue; struct AST * node; }
 %token BGIN END ASSIGN CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE PRINT 
@@ -494,9 +595,11 @@ list : statement ';'
      ;
 
 /* instructiune */
-statement : elem ASSIGN expr { insert_iValue($<nume>1, evalAST($<node>3)); }
-          |	ID '(' lista_apel ')'
+statement : elem ASSIGN expr { elimin_tot_dupa_var($<nume>1); verif_stanga_dreapta($<nume>1, "INT"); insert_iValue($<nume>1, evalAST($<node>3)); }
+          |	ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); verif_param($<nume>1); nr_s=0; }
           | PRINT '(' '"' text '"' ',' expr ')' { elimin_tot_dupa_ghilimele($<nume>4); printf("%s %d\n",$<nume>4, evalAST($<node>7)); }
+          | elem ASSIGN NR_REAL { elimin_tot_dupa_var($<nume>1); verif_stanga_dreapta($<nume>1, "FLOAT"); insert_fValue($<nume>1, $<fValue>3);}
+          | elem ASSIGN sir { elimin_tot_dupa_var($<nume>1); verif_stanga_dreapta($<nume>1, "STRING"); insert_sValue($<nume>1, $<sValue>3); }
           ;
 
 text : ID
@@ -536,9 +639,23 @@ pentru_for : elem ASSIGN expr ';' expr_bool ';' elem ASSIGN expr   { $<iValue>1=
            | ';' ';' { $<iValue>$=0; }
            ;
 
-lista_apel : expr_b
-           | lista_apel ',' expr_b
+lista_apel : e { nr_s++; }
+           | lista_apel ',' e
            ;
+    
+e :    expr_s                { strcpy(verif[nr_s].tip,"INT"); }        
+     | NR                    { strcpy(verif[nr_s].tip,"INT"); }
+     | NR_REAL               { strcpy(verif[nr_s].tip,"FLOAT"); }
+     | elem                  { elimin_tot_dupa_var($<nume>1); caut_variabila_in_tabel($<nume>1); strcpy(verif[nr_s].tip, getTip($<nume>1)); }
+     | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); strcpy(verif[nr_s].tip, getTipFunctie($<nume>1)); } 
+     ;
+
+expr_s : NR '+' NR
+       | NR '-' NR
+       | NR '*' NR
+       | NR '/' NR
+       | '(' NR ')'
+       ;
 
 expr : expr '+' expr         { $<node>$=buildAST("+",$<node>1, $<node>3, "OP"); }
      | expr '-' expr         { $<node>$=buildAST("-",$<node>1, $<node>3, "OP"); }
@@ -547,7 +664,7 @@ expr : expr '+' expr         { $<node>$=buildAST("+",$<node>1, $<node>3, "OP"); 
      | '(' expr ')'          { $<node>$=$<node>2; }
      | NR                    { $<node>$=buildASTt($1, (struct AST *)NULL, (struct AST *)NULL, "NUMBER"); }
      | elem                  { $<node>$=buildAST($<nume>1, (struct AST *)NULL, (struct AST *)NULL, "IDENTIFIER"); }
-     | ID '(' lista_apel ')' { $<node>$=buildASTt(0, (struct AST *)NULL, (struct AST *)NULL, "NUMBER"); }
+     | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); $<node>$=buildASTt(0, (struct AST *)NULL, (struct AST *)NULL, "NUMBER"); }
      ;
     
 expr_b : expr_b '+' expr_b     { $<iValue>$ = $<iValue>1 + $<iValue>3; }
@@ -557,7 +674,7 @@ expr_b : expr_b '+' expr_b     { $<iValue>$ = $<iValue>1 + $<iValue>3; }
        | '(' expr_b ')'        { $<iValue>$ = $<iValue>2; }
        | NR                    { $<iValue>$ = $<iValue>1; }
        | elem                  { $<iValue>$ = $<iValue>1; }
-       | ID '(' lista_apel ')' { $<iValue>$ = 0; }
+       | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); $<iValue>$ = 0; }
        ;      
 
 elem : ID            { elimin_tot_dupa_var($1); $<nume>$ = $1;}
@@ -590,6 +707,7 @@ bool : expr_b LW expr_b      { $<iValue>$ = $<iValue>1 < $<iValue>3; }
 
 %%
 int yyerror(char * s){
+err=1;
 printf("eroare: %s la linia:%d\n",s,yylineno);
 }
 
@@ -600,39 +718,45 @@ for(i=0;i<100;i++) {func[i].nr_param=0; str[i].nr=0;}
 
 yyin=fopen(argv[1],"r");
 yyparse();
+if(err==1) return 0;
 
-printf("SIMBOL | TIP | VALOARE | STATUS\n");
 
+
+FILE *fp;
+fp = fopen("tabel_variabile.txt", "w");
+fprintf(fp,"VARIABILE\n\n");
+fprintf(fp,"SIMBOL | TIP | VALOARE | STATUS\n");
 for(i=0;i<n;i++)
 {
-    printf("%s | %s | ",sym[i].simbol,sym[i].tip);
-    if(strcmp(sym[i].tip,"BOOL")==0 || strcmp(sym[i].tip,"CONST BOOL")==0 ) printf("%d | ",sym[i].iValue);
+    fprintf(fp, "%s | %s | ",sym[i].simbol,sym[i].tip);
+    if(strcmp(sym[i].tip,"BOOL")==0 || strcmp(sym[i].tip,"CONST BOOL")==0 ) fprintf(fp,"%d | ",sym[i].iValue);
     else
-    if(strcmp(sym[i].tip,"INT")==0 || strcmp(sym[i].tip,"CONST INT")==0 ) printf("%d | ",sym[i].iValue);
+    if(strcmp(sym[i].tip,"INT")==0 || strcmp(sym[i].tip,"CONST INT")==0 ) fprintf(fp,"%d | ",sym[i].iValue);
     else
-    if(strcmp(sym[i].tip,"FLOAT")==0 || strcmp(sym[i].tip,"CONST FLOAT")==0 ) printf("%f | ",sym[i].fValue);
+    if(strcmp(sym[i].tip,"FLOAT")==0 || strcmp(sym[i].tip,"CONST FLOAT")==0 ) fprintf(fp,"%f | ",sym[i].fValue);
     else
-    if(strcmp(sym[i].tip,"CHAR")==0 || strcmp(sym[i].tip,"CONST CHAR")==0 ) printf("%s | ",sym[i].sValue);
+    if(strcmp(sym[i].tip,"CHAR")==0 || strcmp(sym[i].tip,"CONST CHAR")==0 ) fprintf(fp,"%s | ",sym[i].sValue);
     else
-    if(strcmp(sym[i].tip,"STRING")==0 || strcmp(sym[i].tip,"CONST STRING")==0 ) printf("%s | ",sym[i].sValue);
-    printf("%s\n",sym[i].status);
+    if(strcmp(sym[i].tip,"STRING")==0 || strcmp(sym[i].tip,"CONST STRING")==0 ) fprintf(fp,"%s | ",sym[i].sValue);
+    fprintf(fp,"%s\n",sym[i].status);
 }
 
-printf("FUNCTII:\n");
-printf("TIP | NUME | NR_PARAM | TIP_PARAMETRU PARAMETRU\n");
+fp = fopen("tabel_functii.txt", "w");
+
+fprintf(fp,"FUNCTII\n\n");
+fprintf(fp,"TIP | NUME | NR_PARAM | TIP_PARAMETRU PARAMETRU\n");
 for(i=0;i<m;i++)
 {
-    printf("%s | %s | %d | ",func[i].tip_functie, func[i].nume, func[i].nr_param);
-    if(func[i].nr_param==0) printf("-\n");
+    fprintf(fp,"%s | %s | %d | ",func[i].tip_functie, func[i].nume, func[i].nr_param);
+    if(func[i].nr_param==0) fprintf(fp,"-\n");
     else
     {
         int j;
         for(j=0;j<func[i].nr_param;j++)
         {
-            printf("%s %s ",func[i].param[j].tip,func[i].param[j].simbol);
+            fprintf(fp,"%s %s ",func[i].param[j].tip,func[i].param[j].simbol);
         }
-        printf("\n");
+        fprintf(fp,"\n");
     }
 }
-printf("%d %d\n",n,m);
 } 
