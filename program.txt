@@ -1,11 +1,18 @@
 begin_global
 
-int a;
+bool ploaie=1;
+
+int a=5;
+int vector[100];
 const int b=3;
 float ruj;
 float rata=5.6;
-char s;
-const char e=s;
+string s="lalalalla";
+
+
+int z=a;
+float copie_float=rata;
+string copie=s;
 const string floare="trandafir";
 string inima;
 
@@ -17,7 +24,7 @@ float nr2(int param1, int x2x, int z)
 {
     int ab;
     ab=10;
-    print("DA x+1",11+11);
+    print("valoarea lui x+1: ",11+11);
    
 }
 
@@ -26,10 +33,16 @@ int nr3(char d)
     int fr;
     fr=5;
 }
+int nr2 (int x, int y, int z)
+{
+    int aaaaa;
+    a=100;
+}
+bool nr2 (char cc, char ccc);
 
 struct popcorn 
 {
-    int mamaliga=7, soare;
+    int mamaliga=7, soare=a;
     float mergem=88.9;
 }interesant, telefon;
 
@@ -38,13 +51,14 @@ end_define
 
 begin_progr
 
-while(3<4+nr2(4, 3, 3))
-{
-    print("interesaaaaant chiar: ", interesant.mamaliga+nr2(2, 2, 2)+1);
-}
-nr2(2,2,a);
-print("functia:", nr2(2, 2, 2));
+
+
+print("valoare vector: ",vector[5]);
 rata=6.6;
-a=20;
+telefon.mamaliga=a;
+telefon.mergem=rata;
+a=b+5;
+
+s="lalala";
 inima="dasda";
 end_progr
