@@ -23,13 +23,13 @@
 "else" {return ELSE;}
 "print" {return PRINT;}
 [_a-zA-Z][_a-zA-Z0-9]* {yylval.nume = yytext; return ID;} 
-"=" {return ASSIGN;}  
+"<=" {return LWEQ;}
+">=" {return BGEQ;} 
 "<" {return LW;}  
 ">" {return BG;}  
-"<=" {return LWEQ;}
-">=" {return BGEQ;}
 "==" {return EQ;}
-"!=" {return NOTEQ;}  
+"!=" {return NOTEQ;}
+"=" {return ASSIGN;}   
 [0-9]+[0-9]*\.[0-9]+[0-9]* { yylval.fValue=atof(yytext); return NR_REAL;}
 [0-9]+ {yylval.iValue = atoi(yytext); return NR;}
 [ \t] ;

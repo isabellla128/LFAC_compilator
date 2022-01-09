@@ -150,7 +150,7 @@ void insert_status(char* status)
 void insert_iValue(char simbol[10], int valoare)
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1)
+    if(i==-1 && strcmp(simbol,"VECT")!=0)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -163,7 +163,7 @@ void insert_iValue(char simbol[10], int valoare)
 void insert_fValue(char simbol[10], float valoare)
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1)
+    if(i==-1 && strcmp(simbol,"VECT")!=0)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -176,7 +176,7 @@ void insert_fValue(char simbol[10], float valoare)
 void insert_sValue(char simbol[10], char valoare[100])
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1)
+    if(i==-1  && strcmp(simbol,"VECT")!=0)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -187,7 +187,7 @@ void insert_sValue(char simbol[10], char valoare[100])
     {
         if(strcmp(sym[i].tip,"CHAR")==0 || strcmp(sym[i].tip,"CONST CHAR")==0)
         {
-                if(strlen(valoare) != 1)
+                if(strlen(valoare) != 1 && strcmp(simbol,"VECT")!=0)
                 {
                     char eroare[200];
                     sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -501,7 +501,7 @@ void verif_param(char s[100])
 void caut_variabila_in_tabel(char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1)
+    if(i==-1 && strcmp(s,"VECT")!=0)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -513,7 +513,7 @@ void caut_variabila_in_tabel(char s[100])
 int getiValue (char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1)
+    if(i==-1 && strcmp(s,"VECT")!=0)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -525,7 +525,7 @@ int getiValue (char s[100])
 float getfValue (char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1)
+    if(i==-1 && strcmp(s,"VECT")!=0)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -537,7 +537,7 @@ float getfValue (char s[100])
 char* getsValue (char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1)
+    if(i==-1 && strcmp(s,"VECT")!=0)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -713,7 +713,7 @@ list : statement ';'
      ;
 
 /* instructiune */
-statement : elem ASSIGN expr { elimin_tot_dupa_struct($<nume>1); if(strncmp(getTip($<nume>1),"CONST",5)==0) eroare_const($<nume>1); insert_iValue($<nume>1, evalAST($<node>3)); }
+statement : elem ASSIGN expr {elimin_tot_dupa_struct($<nume>1); if(strcmp($<nume>1,"VECT")!=0) {  if(strncmp(getTip($<nume>1),"CONST",5)==0) eroare_const($<nume>1); insert_iValue($<nume>1, evalAST($<node>3));}}
           |	ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); verif_param($<nume>1); nr_s=0; }
           | PRINT '(' '"' text '"' ',' expr ')' { elimin_tot_dupa_ghilimele($<nume>4); printf("%s %d\n",$<nume>4, evalAST($<node>7)); }
           | elem ASSIGN real { elimin_tot_dupa_var($<nume>1); verif_stanga_dreapta($<nume>1, "FLOAT"); insert_fValue($<nume>1, $<fValue>3);}
@@ -748,13 +748,13 @@ control_statement : WHILE '(' expr_bool ')' '{' list '}' { if($<iValue>3!=0) pri
                   ;
 
 pentru_for : elem ASSIGN expr ';' expr_bool ';' elem ASSIGN expr   { $<iValue>1=evalAST($<node>3); $<iValue>$=$<iValue>5; $<iValue>7=evalAST($<node>9); }
-           | elem ASSIGN expr ';' ';' elem ASSIGN expr { $<iValue>1=evalAST($<node>3); $<iValue>$=0; $<iValue>6=evalAST($<node>8); }
-           | elem ASSIGN expr ';' ';' { $<iValue>1=evalAST($<node>3); $<iValue>$=0; }
+           | elem ASSIGN expr ';' ';' elem ASSIGN expr { $<iValue>1=evalAST($<node>3); $<iValue>$=1; $<iValue>6=evalAST($<node>8); }
+           | elem ASSIGN expr ';' ';' { $<iValue>1=evalAST($<node>3); $<iValue>$=1; }
            | elem ASSIGN expr ';' expr_bool ';' { $<iValue>1=evalAST($<node>3); $<iValue>$=$<iValue>5; }
            | ';' expr_bool ';' elem ASSIGN expr { $<iValue>$=$<iValue>2; $<iValue>4=evalAST($<node>6); }
            | ';' expr_bool ';' { $<iValue>$=$<iValue>2; }  
-           | ';' ';' elem ASSIGN expr { $<iValue>3=evalAST($<node>5); $<iValue>$=0; }
-           | ';' ';' { $<iValue>$=0; }
+           | ';' ';' elem ASSIGN expr { $<iValue>3=evalAST($<node>5); $<iValue>$=1; }
+           | ';' ';' { $<iValue>$=1; }
            ;
 
 lista_apel : e { nr_s++; }
@@ -764,7 +764,7 @@ lista_apel : e { nr_s++; }
 e :    expr_s                { strcpy(verif[nr_s].tip,"INT"); }        
      | NR                    { strcpy(verif[nr_s].tip,"INT"); }
      | NR_REAL               { strcpy(verif[nr_s].tip,"FLOAT"); }
-     | elem                  { elimin_tot_dupa_var($<nume>1); caut_variabila_in_tabel($<nume>1); strcpy(verif[nr_s].tip, getTip($<nume>1)); }
+     | elem                  { elimin_tot_dupa_struct($<nume>1); caut_variabila_in_tabel($<nume>1); strcpy(verif[nr_s].tip, getTip($<nume>1)); }
      | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); strcpy(verif[nr_s].tip, getTipFunctie($<nume>1)); } 
      ;
 
@@ -791,9 +791,14 @@ expr_b : expr_b '+' expr_b     { $<iValue>$ = $<iValue>1 + $<iValue>3; }
        | expr_b '/' expr_b     { $<iValue>$ = $<iValue>1 / $<iValue>3; }
        | '(' expr_b ')'        { $<iValue>$ = $<iValue>2; }
        | NR                    { $<iValue>$ = $<iValue>1; }
-       | elem                  { $<iValue>$ = $<iValue>1; }
+       | elem_b                { $<iValue>$ = $<iValue>1; }
        | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); $<iValue>$ = 0; }
-       ;      
+       ; 
+elem_b  : ID { elimin_tot_dupa_var($1); $<iValue>$ = getiValue($1); } //in loc de 0 valoarea variabilei
+        | ID '.' ID { elimin_tot_dupa_var($1); elimin_tot_dupa_var($3); combina($1, $3); $<iValue>$ = getiValue($1); }
+        | ID '[' ID ']' { $<iValue>$ = 0; }
+        | ID '[' NR ']' { $<iValue>$ = 0; }
+        ;     
 
 elem : ID            { elimin_tot_dupa_var($1); $<nume>$ = $1;}
      | ID '.' ID     { elimin_tot_dupa_var($1); elimin_tot_dupa_var($3); combina($1, $3); strcpy($<nume>$, $1);}
