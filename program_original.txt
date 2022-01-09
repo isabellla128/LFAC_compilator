@@ -10,8 +10,22 @@ end_global
 
 begin_define
 
-struct nume {int a,b,c; int x[100]; float e=66;} zz,z,zzz;
-float nr2(int param1, int x, const int z);
+struct nume {int a,b,c; int x[100]; float e=66.0;} zz,z,zzz;
+int nr2(int param1, int yy, const  int zz);
+float nr2(int param1, int param2, int param3)
+{
+    int alfabet;
+    alfabet=x+10;
+    if ( alfabet > 10 && alfabet < 100) 
+    { 
+        alfabet=alfabet+alfabet; 
+    }
+    else
+    {
+        print("se afiseaza: ", alfabet);
+    }
+}
+
 
 end_define
 
@@ -21,28 +35,40 @@ nr1=(5+4)*10;
 nr2(52);
 sir1=34+nr1;
 sir2=(sir1+5)*5; 
-f(x+3, 5, y*x);
+f(5*3, 5, 4+5);
 nr3=zz.a;
 
-f(3,x+5,g(44,nr3),zzz.b);
+zzz.e=7.5;
 
-while ( x[i] != x[9] ) { x=5; }
+while ( floare != 4 && floare<10) { x=5; }
 
-if ( x[9]>=x[kj] ) { x=5; }
+if ( x[9]>=x[kj] ) { z=5; }
 
-if ( 1<2 ) { x=5; }
+if ( x<y ) { nr1=15; }
+else
+{
+    print("afisarea unei expresii: ", 5*(10+3));
+    nr3=40;
+    print("afisarea unei expresii: ", 5*10+3/(5-2)+40);
+}
 
-for (x=5;1<3;5+1) { x=5; }
-for (x=5;5>1;) { x=5; }
-for (x=5;;5+1) { x=5; }
-for (;5==6;5+1) { x=5; }
-for (x=5;;) { x=5; }
-for (;5<=4;) { x=5; }
-for (;;5+1) { x=5; }
-for (;;) { x=5; }
-c=x[i];
-x[i]=c;
-x[9]=5;
-x[i]=x[9]+5;
+for (x=5;1<3;x=x+1) { z=5; }
+for (x=5;5>1;) { z=5; }
+for (x=5;;x=x+5) { z=5; }
+for (;5==6;x=x+2) { z=5; }
+for (x=5;;) { z=5; }
+for (;5<=4;) { z=5; }
+for (;;x=x+x) { z=5; }
+for (;;) { z=5; }
+
+nr2(sir2, 4, 4);
+
+print("valoarea lui z este: ", z);
+print("valoarea functiei este: ", nr2(x, 3, 5));
+print("valoarea functiei este: ", nr2(sir2, 3, 5));
+
+vector[i]=z;
+vector[9]=5;
+vector[i]=vector[9]+5;
 
 end_progr
