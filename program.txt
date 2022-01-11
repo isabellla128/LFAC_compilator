@@ -5,6 +5,7 @@ char sir1;
 string sir2;
 int vector[100],yy=3,z;
 const int x=10, y=30;
+bool vacanta=1;
 
 end_global
 
@@ -34,6 +35,7 @@ begin_progr
 nr1=(5+4)*10;
 nr2(3,3,x+3);
 zzz.e=7.5;
+
 while ( yy != 4 && yy<10) { yy=5; }
 
 if ( x[9]>=x[kj] ) { z=5; }
