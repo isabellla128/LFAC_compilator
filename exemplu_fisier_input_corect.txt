@@ -1,0 +1,47 @@
+begin_global
+
+int x ;
+int x1;
+int x2;
+int y;
+int arr[10];
+
+end_global
+
+begin_define
+
+
+int testFunction(int x, float z) 
+{
+    int a;
+    a=5+1;
+}
+
+int testFunction(int x, int z) 
+{
+    int b;
+    b=5+1;
+}
+
+int test(int param1, int param2) 
+{
+    int c;
+    c=5+1;
+}
+
+end_define
+
+begin_progr
+
+arr[2] = 1; x = 10; x1 = 20; x2 = 30;
+if (x1 + test(x1,x2) < 5 + x1 && (x > 2 || x1 < 4+x2) || x == 2) 
+{
+    x = 2;
+}
+x = test(test(x1,3)+2, y+4) + 34 - y * arr[2];
+print("valoarea lui x este:", x); 
+x1 = x + 5 * 10 + arr[2];
+print("valoarea lui x1 este:", x1);    
+print("valoarea expresiei este:", x2 * 10);    
+
+end_progr

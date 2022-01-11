@@ -1,0 +1,47 @@
+begin_global
+
+int x = 23;
+int x1;
+int x1;
+int x2;
+float f1 = 50.0;
+string s = "ana"’;
+
+end_global
+begin_define
+
+int testFunction(int x, float z) 
+{
+    int a;
+    a=5;
+}
+
+int testFunction(int x, float z) 
+{
+    int b;
+    b=5+4;
+}
+
+int testFunction(float x, float z) 
+{
+    int c;
+    c=5*4;
+}
+
+int test(int param) 
+{
+    int d;
+    d=5/4;
+}
+
+end_define
+begin_progr
+
+x3 = x + 2;
+f1 = x + x2;
+f1 = test (5) + x;
+x = s + f1;
+test(f1);
+
+end_progr
+

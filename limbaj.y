@@ -150,7 +150,7 @@ void insert_status(char* status)
 void insert_iValue(char simbol[10], int valoare)
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1 && strcmp(simbol,"VECT")!=0)
+    if(i==-1)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -163,7 +163,7 @@ void insert_iValue(char simbol[10], int valoare)
 void insert_fValue(char simbol[10], float valoare)
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1 && strcmp(simbol,"VECT")!=0)
+    if(i==-1)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -176,7 +176,7 @@ void insert_fValue(char simbol[10], float valoare)
 void insert_sValue(char simbol[10], char valoare[100])
 {
     int i=getIndiceSimbol(simbol);
-    if(i==-1  && strcmp(simbol,"VECT")!=0)
+    if(i==-1)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -187,7 +187,7 @@ void insert_sValue(char simbol[10], char valoare[100])
     {
         if(strcmp(sym[i].tip,"CHAR")==0 || strcmp(sym[i].tip,"CONST CHAR")==0)
         {
-                if(strlen(valoare) != 1 && strcmp(simbol,"VECT")!=0)
+                if(strlen(valoare) != 1)
                 {
                     char eroare[200];
                     sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",simbol);
@@ -281,17 +281,6 @@ char* convert_tip(int tip)
 
 void insert_functie_nume(char nume[50])
 {
-     int i;
-     for(i=0;i<=m;i++)
-    {
-        if(strcmp(nume,func[i].nume)==0 && strcmp(convert_tip(tip_curent),func[i].tip_functie)==0)
-        {
-            char eroare[200];
-            sprintf(eroare, "exista deja o functie cu numele %s si tipul %s, iar eroarea este",nume,func[i].tip_functie);
-            yyerror(eroare);
-            exit(1); 
-        }
-    }
      strcpy(func[m].nume, nume);
 }
 
@@ -399,8 +388,6 @@ int evalAST(struct AST* root)
         if(strcmp(root->type, "NUMBER")==0)
             return root->nr;
         else
-            if(strcmp(root->symb,"VECTOR")==0 ) return 0;
-            else
             if(strcmp(root->type, "IDENTIFIER")==0)
             {
                 int pozitie=getIndiceSimbol(root->symb);
@@ -485,7 +472,14 @@ char* getTipFunctie(char s[100])
 void verif_param(char s[100])
 {
     int i=getIndiceFunctie(s);
-    for(int j=0;j<func[i].nr_param;j++)
+    if(nr_s!=func[i].nr_param)
+    {
+        char eroare[200];
+        sprintf(eroare, "numarul de parametri nu coincide cu parametrii functiei %s, iar eroarea este",s);
+        yyerror(eroare);
+        exit(1);
+    }
+    for(int j=0;j<nr_s;j++)
     {
         if(strcmp(func[i].param[j].tip, verif[j].tip)!=0)
         {
@@ -495,13 +489,12 @@ void verif_param(char s[100])
             exit(1);
         }
     }
-    
 }
 
 void caut_variabila_in_tabel(char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1 && strcmp(s,"VECT")!=0)
+    if(i==-1)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -513,7 +506,7 @@ void caut_variabila_in_tabel(char s[100])
 int getiValue (char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1 && strcmp(s,"VECT")!=0)
+    if(i==-1)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -525,7 +518,7 @@ int getiValue (char s[100])
 float getfValue (char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1 && strcmp(s,"VECT")!=0)
+    if(i==-1)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -537,7 +530,7 @@ float getfValue (char s[100])
 char* getsValue (char s[100])
 {
     int i=getIndiceSimbol(s);
-    if(i==-1 && strcmp(s,"VECT")!=0)
+    if(i==-1)
     {
         char eroare[200];
         sprintf(eroare, "nu exista simbolul %s in tabel, iar eroarea este",s);
@@ -560,10 +553,59 @@ void eroare_bool(char s[100])
     yyerror(eroare);
     exit(1);
 } 
+void sterge_functia()
+{
+    strcpy(func[m-1].nume,"");
+    strcpy(func[m-1].tip_functie,"");
+    for(int j=0;j<func[m-1].nr_param;j++)
+    {
+        strcpy(func[m-1].param[j].simbol,"");
+        strcpy(func[m-1].param[j].tip,"");
+        strcpy(func[m-1].param[j].status,"");
+    }
+    func[m-1].nr_param=0;
+    m--;
+}
+void verifica_overloading()
+{
+    int nr_param=func[m-1].nr_param;  //nr de parametrii din functia nou adaugata
+    for(int i=m-2;i>=0;i--)
+    {
+        int ok=0;
+        if(strcmp(func[m-1].nume, func[i].nume)==0&&strcmp(func[m-1].tip_functie, func[i].tip_functie)==0)   
+        {
+            for(int j=0;j<nr_param&&ok==0;j++)
+            {
+
+                if(strcmp(func[m-1].param[j].tip, func[i].param[j].tip)!=0)
+                {
+                    ok=1;
+                }
+            }  
+            if(ok==0)
+            {
+                char eroare[200];
+                sprintf(eroare, "functia %s exista deja, iar eroarea este",func[m-1].nume);
+                sterge_functia();
+                yyerror(eroare);
+                exit(1);
+            }     
+        } 
+    }
+}
+
+void eroare_int(char s[100])
+{
+    char eroare[200];
+    sprintf(eroare, "variabila %s nu este de tip int, iar eroarea este",s);
+    sterge_functia();
+    yyerror(eroare);
+    exit(1);
+}
 
 %}
 %union {char* nume; int iValue; float fValue; char* sValue; struct AST * node; }
-%token BGIN END ASSIGN CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE PRINT 
+%token BGIN END ASSIGN CONST WHILE STRUCT FOR IF LW BG LWEQ BGEQ EQ NOTEQ ELSE BGIN_GLOBAL END_GLOBAL BGIN_DEFINE END_DEFINE PRINT  AND OR NOT 
 %token <nume> ID
 %token <fValue> NR_REAL
 %token <iValue> NR BOOL INT FLOAT CHAR STRING
@@ -607,15 +649,15 @@ definitii  : definitie
 	       | definitii definitie 
 	       ;
 
-definitie   : tip nume_functie '(' lista_param ')' ';'{ m++; }
-            | tip nume_functie '(' ')' ';'{ insert_functie_tip($<iValue>1); m++; }
-            | const_tip nume_functie '(' lista_param ')'';'{ insert_functie_tip($<iValue>1); m++; }
-            | const_tip nume_functie '(' ')' ';'{ insert_functie_tip($<iValue>1); m++; }
+definitie   : tip nume_functie '(' lista_param ')' ';'{ m++; verifica_overloading(); }
+            | tip nume_functie '(' ')' ';'{ insert_functie_tip($<iValue>1); m++; verifica_overloading(); }
+            | const_tip nume_functie '(' lista_param ')'';'{ insert_functie_tip($<iValue>1); m++; verifica_overloading(); }
+            | const_tip nume_functie '(' ')' ';'{ insert_functie_tip($<iValue>1); m++; verifica_overloading(); }
             | STRUCT nume_struct '{' continut_struct '}' lista_id_s ';'{ o++; }
-            | tip nume_functie '(' lista_param ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }
-            | tip nume_functie '(' ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }
-            | const_tip nume_functie '(' lista_param ')''{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }
-            | const_tip nume_functie '(' ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; }            
+            | tip nume_functie '(' lista_param ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; verifica_overloading(); }
+            | tip nume_functie '(' ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; verifica_overloading(); }
+            | const_tip nume_functie '(' lista_param ')''{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; verifica_overloading(); }
+            | const_tip nume_functie '(' ')' '{' declaratii list '}'{ insert_functie_tip($<iValue>1); m++; verifica_overloading(); }            
             ;
 
 nume_functie : ID { insert_functie_nume($1); insert_functie_tip(tip_curent); strcpy(functie_curenta,$1); strcpy(status_curent,$1); }
@@ -713,11 +755,11 @@ list : statement ';'
      ;
 
 /* instructiune */
-statement : elem ASSIGN expr {elimin_tot_dupa_struct($<nume>1); if(strcmp($<nume>1,"VECT")!=0) {  if(strncmp(getTip($<nume>1),"CONST",5)==0) eroare_const($<nume>1); insert_iValue($<nume>1, evalAST($<node>3));}}
+statement : elem ASSIGN expr {elimin_tot_dupa_struct($<nume>1); if(strncmp(getTip($<nume>1),"CONST",5)==0) eroare_const($<nume>1); insert_iValue($<nume>1, evalAST($<node>3)); if(strcmp(getTip($<nume>1),"INT")!=0) eroare_int($<nume>1);  }
           |	ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); verif_param($<nume>1); nr_s=0; }
           | PRINT '(' '"' text '"' ',' expr ')' { elimin_tot_dupa_ghilimele($<nume>4); printf("%s %d\n",$<nume>4, evalAST($<node>7)); }
-          | elem ASSIGN real { elimin_tot_dupa_var($<nume>1); verif_stanga_dreapta($<nume>1, "FLOAT"); insert_fValue($<nume>1, $<fValue>3);}
-          | elem ASSIGN sir { elimin_tot_dupa_var($<nume>1); if(strlen($<sValue>3) <=1 ) verif_stanga_dreapta($<nume>1, "CHAR"); else verif_stanga_dreapta($<nume>1, "STRING"); insert_sValue($<nume>1, $<sValue>3); }
+          | elem ASSIGN real { elimin_tot_dupa_struct($<nume>1); verif_stanga_dreapta($<nume>1, "FLOAT"); insert_fValue($<nume>1, $<fValue>3);}
+          | elem ASSIGN sir { elimin_tot_dupa_struct($<nume>1); if(strlen($<sValue>3) <=1 ) verif_stanga_dreapta($<nume>1, "CHAR"); else verif_stanga_dreapta($<nume>1, "STRING"); insert_sValue($<nume>1, $<sValue>3); }
           ;
 
 text : ID
@@ -736,6 +778,10 @@ caracter : ' '
          | '/'
          | ';'
          | ':'
+         | '['
+         | ']'
+         | '{'
+         | '}'
          ;
 
 control_statement : WHILE '(' expr_bool ')' '{' list '}' { if($<iValue>3!=0) printf("while %d este ADEVARAT\n",whileuri); else printf("while %d este FALS\n",yylineno); whileuri++; }
@@ -758,22 +804,29 @@ pentru_for : elem ASSIGN expr ';' expr_bool ';' elem ASSIGN expr   { $<iValue>1=
            ;
 
 lista_apel : e { nr_s++; }
-           | lista_apel ',' e
+           | lista_apel ',' e { nr_s++; }
            ;
     
-e :    expr_s                { strcpy(verif[nr_s].tip,"INT"); }        
+e    : expr_s                { strcpy(verif[nr_s].tip,"INT"); }        
      | NR                    { strcpy(verif[nr_s].tip,"INT"); }
      | NR_REAL               { strcpy(verif[nr_s].tip,"FLOAT"); }
-     | elem                  { elimin_tot_dupa_struct($<nume>1); caut_variabila_in_tabel($<nume>1); strcpy(verif[nr_s].tip, getTip($<nume>1)); }
-     | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); strcpy(verif[nr_s].tip, getTipFunctie($<nume>1)); } 
+     | elem                  { elimin_tot_dupa_struct($<nume>1); caut_variabila_in_tabel($<nume>1); strcpy(verif[nr_s].tip, getTip($<nume>1));  }
+     | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); strcpy(verif[nr_s].tip, getTipFunctie($<nume>1)); } 
      ;
 
-expr_s : NR '+' NR
-       | NR '-' NR
-       | NR '*' NR
-       | NR '/' NR
-       | '(' NR ')'
+expr_s : nr '+' nr
+       | nr '-' nr
+       | nr '*' nr
+       | nr '/' nr
+       | '(' nr ')'
        ;
+
+nr : NR 
+   | ID 
+   | ID '(' lista_apel ')' { elimin_tot_dupa_var($<nume>1); caut_functia_in_tabel($<nume>1); strcpy(verif[nr_s].tip, getTipFunctie($<nume>1)); }  
+   | ID '[' ID ']' 
+   | ID '[' NR ']'
+   ;
 
 expr : expr '+' expr         { $<node>$=buildAST("+",$<node>1, $<node>3, "OP"); }
      | expr '-' expr         { $<node>$=buildAST("-",$<node>1, $<node>3, "OP"); }
@@ -802,8 +855,8 @@ elem_b  : ID { elimin_tot_dupa_var($1); $<iValue>$ = getiValue($1); } //in loc d
 
 elem : ID            { elimin_tot_dupa_var($1); $<nume>$ = $1;}
      | ID '.' ID     { elimin_tot_dupa_var($1); elimin_tot_dupa_var($3); combina($1, $3); strcpy($<nume>$, $1);}
-     | ID '[' ID ']' { strcpy($<nume>$, "VECTOR"); }
-     | ID '[' NR ']' { strcpy($<nume>$, "VECTOR"); }
+     | ID '[' ID ']' { elimin_tot_dupa_var($1); $<nume>$=$1; }
+     | ID '[' NR ']' { elimin_tot_dupa_var($1); $<nume>$=$1; }
      ;
 
 expr_bool : expr_bool AND expr_bool { $<iValue>$ = $<iValue>1 && $<iValue>3; } 
@@ -815,6 +868,7 @@ expr_bool : expr_bool AND expr_bool { $<iValue>$ = $<iValue>1 && $<iValue>3; }
           | expr_b  OR expr_bool    { $<iValue>$ = $<iValue>1 || $<iValue>3; } 
           | expr_b  OR expr_b       { $<iValue>$ = $<iValue>1 || $<iValue>3; } 
           | bool                    { $<iValue>$ = $<iValue>1; } 
+          | '(' expr_bool ')'       { $<iValue>$ = $<iValue>2; } 
           ;
 bool : expr_b LW expr_b      { $<iValue>$ = $<iValue>1 < $<iValue>3; } 
      | expr_b BG expr_b      { $<iValue>$ = $<iValue>1 > $<iValue>3;  }

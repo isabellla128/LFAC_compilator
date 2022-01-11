@@ -1,7 +1,6 @@
 FUNCTII
 
 TIP | NUME | NR_PARAM | TIP_PARAMETRU PARAMETRU
-FLOAT | nr2 | 3 | INT param1 INT x2x INT z 
-INT | nr3 | 1 | CHAR d 
-INT | nr2 | 3 | INT x INT y INT z 
-BOOL | nr2 | 2 | CHAR cc CHAR ccc 
+INT | testFunction | 2 | INT x FLOAT z 
+INT | testFunction | 2 | FLOAT x FLOAT z 
+INT | test | 1 | INT param 

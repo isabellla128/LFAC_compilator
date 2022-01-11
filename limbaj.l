@@ -30,10 +30,11 @@
 "==" {return EQ;}
 "!=" {return NOTEQ;}
 "=" {return ASSIGN;}   
+"&&" {return AND;}
+"||" {return OR;}
+"!" {return NOT;} 
 [0-9]+[0-9]*\.[0-9]+[0-9]* { yylval.fValue=atof(yytext); return NR_REAL;}
 [0-9]+ {yylval.iValue = atoi(yytext); return NR;}
 [ \t] ;
 \n {yylineno++;}                            
 . {return yytext[0];}
-
- 
